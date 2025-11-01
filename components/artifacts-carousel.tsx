@@ -71,7 +71,7 @@ export function ArtifactsCarousel({ artifacts, canEdit }: ArtifactsCarouselProps
   }
 
   return (
-    <div className="relative overflow-hidden px-6 lg:px-8">
+    <div className="relative overflow-hidden">
       {/* Left Navigation Button */}
       {canScrollLeft && (
         <Button
@@ -103,8 +103,11 @@ export function ArtifactsCarousel({ artifacts, canEdit }: ArtifactsCarouselProps
         className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin lg:gap-6"
         style={{ scrollbarWidth: "thin" }}
       >
-        {artifacts.map((artifact) => (
-          <div key={artifact.id} className="flex-none w-[calc(75vw-2rem)] snap-start lg:w-80">
+        {artifacts.map((artifact, index) => (
+          <div
+            key={artifact.id}
+            className={`flex-none w-[75vw] snap-start lg:w-80 ${index === 0 ? "pl-6 lg:pl-8" : ""} ${index === artifacts.length - 1 ? "pr-6 lg:pr-8" : ""}`}
+          >
             <ArtifactCard artifact={artifact} />
           </div>
         ))}
