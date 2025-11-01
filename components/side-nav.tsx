@@ -3,7 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Home, FolderOpen } from "lucide-react"
+import { Home, FolderOpen, User } from "lucide-react"
 
 interface SideNavProps {
   isOpen: boolean
@@ -15,6 +15,7 @@ const navItems = [
   { href: "/", label: "Home", icon: Home },
   { href: "/collections", label: "Collections", icon: FolderOpen },
   { href: "/artifacts", label: "Artifacts", icon: FolderOpen }, // Updated to link to /artifacts page
+  { href: "/profile", label: "My Profile", icon: User }, // Added Profile link to navigation
   { href: "#", label: "Stories", icon: FolderOpen },
 ]
 
