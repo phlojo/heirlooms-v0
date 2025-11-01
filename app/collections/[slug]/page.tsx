@@ -63,17 +63,25 @@ export default async function CollectionDetailPage({ params }: { params: Promise
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {artifacts.length > 0 ? (
-            artifacts.map((artifact) => <ArtifactCard key={artifact.id} artifact={artifact} />)
-          ) : (
-            <div className="col-span-full rounded-lg border border-dashed p-12 text-center">
-              <p className="text-sm text-muted-foreground">No artifacts in this collection yet.</p>
-              {canEdit && (
-                <p className="mt-2 text-xs text-muted-foreground">Click "Add Artifact" above to add your first item.</p>
-              )}
-            </div>
-          )}
+        <div className="relative -mx-6 px-6 lg:-mx-8 lg:px-8">
+          <div className="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
+            {artifacts.length > 0 ? (
+              artifacts.map((artifact) => (
+                <div key={artifact.id} className="flex-none w-80 snap-start">
+                  <ArtifactCard artifact={artifact} />
+                </div>
+              ))
+            ) : (
+              <div className="flex-none w-full rounded-lg border border-dashed p-12 text-center">
+                <p className="text-sm text-muted-foreground">No artifacts in this collection yet.</p>
+                {canEdit && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Click "Add Artifact" above to add your first item.
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </AppLayout>
