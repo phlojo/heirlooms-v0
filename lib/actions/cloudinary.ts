@@ -1,13 +1,13 @@
 "use server"
 
+import crypto from "crypto"
+
 /**
  * Generate a signature for direct client-side upload to Cloudinary
  * This allows large files to be uploaded directly from the browser to Cloudinary
  * without going through Next.js server action payload limits
  */
 export async function generateCloudinarySignature(userId: string, fileName: string) {
-  const crypto = await import("crypto")
-
   // Check for required environment variables
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
@@ -56,8 +56,6 @@ export async function generateCloudinarySignature(userId: string, fileName: stri
  * Delete a media file from Cloudinary by its public ID
  */
 export async function deleteCloudinaryMedia(publicId: string) {
-  const crypto = await import("crypto")
-
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
   const apiSecret = process.env.CLOUDINARY_API_SECRET
