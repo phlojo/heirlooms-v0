@@ -102,3 +102,24 @@ export function ArtifactsCarousel({ artifacts, canEdit }: ArtifactsCarouselProps
           <ChevronRight className="h-5 w-5" />
           <span className="sr-only">Scroll right</span>
         </Button>
+      )}
+
+      <div
+        ref={scrollContainerRef}
+        className="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin lg:gap-6"
+        style={{ scrollbarWidth: "thin" }}
+      >
+        {artifacts.map((artifact, index) => (
+          <div
+            key={artifact.id}
+            className={`flex-none w-[75vw] snap-start lg:w-80 ${
+              index === 0 ? "pl-6 lg:pl-8" : ""
+            } ${index === artifacts.length - 1 ? "pr-6 lg:pr-8" : ""}`}
+          >
+            <ArtifactCard artifact={artifact} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
