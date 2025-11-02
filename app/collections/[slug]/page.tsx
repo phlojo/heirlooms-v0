@@ -6,7 +6,7 @@ import { notFound, redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/supabase/server"
 import { getCollectionBySlug } from "@/lib/actions/collections"
 import { getArtifactsByCollection } from "@/lib/actions/artifacts"
-import { ArtifactsCarousel } from "@/components/artifacts-carousel"
+import { ArtifactCard } from "@/components/artifact-card"
 import { DeleteCollectionButton } from "@/components/delete-collection-button"
 
 export default async function CollectionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -63,9 +63,20 @@ export default async function CollectionDetailPage({ params }: { params: Promise
           </div>
         </div>
 
-        <div className="relative -mx-6 lg:-mx-8">
-          <ArtifactsCarousel artifacts={artifacts} canEdit={canEdit} />
-        </div>
+        {artifacts.length === 0 ? (
+          <div className="rounded-lg border border-dashed p-12 text-center">
+            <p className="text-sm text-muted-foreground">No artifacts in this collection yet.</p>
+            {canEdit && (
+              <p className="mt-2 text-xs text-muted-foreground">Click "Add Artifact" above to add your first item.</p>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {artifacts.map((artifact) => (
+              <ArtifactCard key={artifact.id} artifact={artifact} />
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   )

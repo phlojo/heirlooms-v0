@@ -32,29 +32,26 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
   return (
     <AppLayout user={user}>
       <div className="space-y-8">
-        <div>
-          <Button variant="ghost" size="sm" asChild className="mb-4">
-            <Link href={collectionHref}>
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Collection
-            </Link>
-          </Button>
+        <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pb-4 lg:-mx-8 lg:px-8 pt-2.5.5.5.5.5.5 pt-2 pt-2 pt-0">
+          <div className="mb-4 flex items-center gap-2 mt-2 mt-2 mt-1 mt-2.5 mt-2 mt-1.5 mt-px">
+            <Button variant="ghost" size="sm" asChild>
+              <Link href={collectionHref}>
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back
+              </Link>
+            </Button>
+            {artifact.collection && (
+              <CollectionLabel
+                collectionId={artifact.collection.id}
+                collectionSlug={artifact.collection.slug}
+                collectionName={artifact.collection.title}
+                size="md"
+              />
+            )}
+          </div>
 
           <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              {artifact.collection && (
-                <div className="mb-2">
-                  <CollectionLabel
-                    collectionId={artifact.collection.id}
-                    collectionSlug={artifact.collection.slug}
-                    collectionName={artifact.collection.title}
-                    size="md"
-                  />
-                </div>
-              )}
-              <h1 className="text-balance text-3xl font-bold tracking-tight">{artifact.title}</h1>
-              <p className="text-pretty text-muted-foreground">{artifact.description || "No description provided"}</p>
-            </div>
+            <h1 className="text-balance text-3xl font-bold tracking-tight">{artifact.title}</h1>
             {canEdit && (
               <Button variant="outline" asChild>
                 <Link href={`/artifacts/${id}/edit`}>
@@ -64,6 +61,10 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
               </Button>
             )}
           </div>
+        </div>
+
+        <div className="space-y-6">
+          <p className="text-pretty text-muted-foreground">{artifact.description || "No description provided"}</p>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
