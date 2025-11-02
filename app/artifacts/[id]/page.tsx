@@ -70,7 +70,7 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
           <div className="space-y-4">
             {artifact.media_urls && artifact.media_urls.length > 0 ? (
               artifact.media_urls.map((url, index) => (
-                <div key={index} className="aspect-square overflow-hidden rounded-lg border bg-muted">
+                <div key={index} className="aspect-square overflow-hidden border bg-muted">
                   <img
                     src={getDetailUrl(url) || "/placeholder.svg"}
                     alt={`${artifact.title} - Image ${index + 1}`}
@@ -79,7 +79,7 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
                 </div>
               ))
             ) : (
-              <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
+              <div className="aspect-square overflow-hidden border bg-muted">
                 <div className="flex h-full items-center justify-center">
                   <p className="text-sm text-muted-foreground">No media available</p>
                 </div>
