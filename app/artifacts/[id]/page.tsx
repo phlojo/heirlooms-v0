@@ -32,7 +32,7 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
   return (
     <AppLayout user={user}>
       <div className="space-y-8">
-        <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pb-4 lg:-mx-8 lg:px-8 pt-2.5.5.5.5.5.5 pt-2 pt-2 pt-0">
+        <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pb-4 lg:-mx-8 lg:px-8 pt-2.5.5.5.5.5.5 pt-2 pt-2 pt-1 pt-0.5 pt-1.5 pt-2 pt-1.5 pt-5 pt-2 pt-2 pt-0">
           <div className="mb-4 flex items-center gap-2 mt-2 mt-2 mt-1 mt-2.5 mt-2 mt-1.5 mt-px">
             <Button variant="ghost" size="sm" asChild>
               <Link href={collectionHref}>
