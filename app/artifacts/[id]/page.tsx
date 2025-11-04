@@ -7,6 +7,13 @@ import { getCurrentUser } from "@/lib/supabase/server"
 import { getArtifactById, getAdjacentArtifacts } from "@/lib/actions/artifacts"
 import { getDetailUrl } from "@/lib/cloudinary"
 
+function isAudioFile(url: string): boolean {
+  return (
+    url.includes("/video/upload/") &&
+    (url.includes(".webm") || url.includes(".mp3") || url.includes(".wav") || url.includes(".m4a"))
+  )
+}
+
 export default async function ArtifactDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser()
 
@@ -99,15 +106,22 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-4">
             {artifact.media_urls && artifact.media_urls.length > 0 ? (
-              artifact.media_urls.map((url, index) => (
-                <div key={index} className="aspect-square overflow-hidden border bg-muted">
-                  <img
-                    src={getDetailUrl(url) || "/placeholder.svg"}
-                    alt={`${artifact.title} - Image ${index + 1}`}
-                    className="h-full w-full object-cover"
-                  />
-                </div>
-              ))
+              artifact.media_urls.map((url, index) =>
+                isAudioFile(url) ? (
+                  <div key={index} className="rounded-lg border bg-muted p-4">
+                    <p className="mb-2 text-sm font-medium">Audio Recording</p>
+                    <audio src={url} controls className="w-full" />
+                  </div>
+                ) : (
+                  <div key={index} className="aspect-square overflow-hidden border bg-muted">
+                    <img
+                      src={getDetailUrl(url) || "/placeholder.svg"}
+                      alt={`${artifact.title} - Image ${index + 1}`}
+                      className="h-full w-full object-cover"
+                    />
+                  </div>
+                ),
+              )
             ) : (
               <div className="aspect-square overflow-hidden border bg-muted">
                 <div className="flex h-full items-center justify-center">

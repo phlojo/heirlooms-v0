@@ -1,9 +1,8 @@
 "use client"
 
 import type React from "react"
-
 import { createArtifact } from "@/lib/actions/artifacts"
-import { generateCloudinarySignature } from "@/lib/actions/cloudinary"
+import { generateCloudinarySignature, generateCloudinaryAudioSignature } from "@/lib/actions/cloudinary"
 import { createArtifactSchema } from "@/lib/schemas"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useForm } from "react-hook-form"
@@ -15,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { useState } from "react"
 import { X, Upload, ImageIcon } from "lucide-react"
+import { AudioRecorder } from "@/components/audio-recorder"
 
 type FormData = z.infer<typeof createArtifactSchema>
 
@@ -28,6 +28,8 @@ export function NewArtifactForm({
   const [error, setError] = useState<string | null>(null)
   const [uploadedImages, setUploadedImages] = useState<string[]>([])
   const [isUploading, setIsUploading] = useState(false)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [isUploadingAudio, setIsUploadingAudio] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(createArtifactSchema),
@@ -130,6 +132,61 @@ export function NewArtifactForm({
     const newImages = uploadedImages.filter((_, i) => i !== index)
     setUploadedImages(newImages)
     form.setValue("media_urls", newImages)
+  }
+
+  async function handleAudioRecorded(audioBlob: Blob, fileName: string) {
+    setIsUploadingAudio(true)
+    setError(null)
+
+    try {
+      console.log("[v0] Uploading audio:", fileName, "Size:", audioBlob.size)
+
+      const signatureResult = await generateCloudinaryAudioSignature(userId, fileName)
+
+      if (signatureResult.error || !signatureResult.signature) {
+        throw new Error(signatureResult.error || "Failed to generate upload signature")
+      }
+
+      const formData = new FormData()
+      formData.append("file", audioBlob, fileName)
+      formData.append("api_key", signatureResult.apiKey!)
+      formData.append("timestamp", signatureResult.timestamp!.toString())
+      formData.append("signature", signatureResult.signature)
+      formData.append("public_id", signatureResult.publicId!)
+      formData.append("resource_type", "video")
+
+      const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`
+
+      console.log("[v0] Uploading audio to Cloudinary:", uploadUrl)
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        console.error("[v0] Cloudinary audio upload error:", errorData)
+        throw new Error(`Failed to upload audio: ${errorData.error?.message || "Unknown error"}`)
+      }
+
+      const data = await response.json()
+      console.log("[v0] Successfully uploaded audio to Cloudinary:", data.secure_url)
+
+      setAudioUrl(data.secure_url)
+      const newMediaUrls = [...uploadedImages, data.secure_url]
+      form.setValue("media_urls", newMediaUrls)
+    } catch (err) {
+      console.error("[v0] Audio upload error:", err)
+      setError(err instanceof Error ? err.message : "Failed to upload audio. Please try again.")
+    } finally {
+      setIsUploadingAudio(false)
+    }
+  }
+
+  function removeAudio() {
+    setAudioUrl(null)
+    form.setValue("media_urls", uploadedImages)
   }
 
   async function onSubmit(data: FormData) {
@@ -285,6 +342,34 @@ export function NewArtifactForm({
           )}
         </div>
 
+        {/* Audio recording section */}
+        <div className="space-y-3">
+          <FormLabel>Audio Recording (Optional)</FormLabel>
+          <FormDescription>Record audio to accompany this artifact</FormDescription>
+
+          {!audioUrl && (
+            <AudioRecorder onAudioRecorded={handleAudioRecorded} disabled={isUploadingAudio || isUploading} />
+          )}
+
+          {isUploadingAudio && (
+            <div className="rounded-lg border border-dashed p-4 text-center">
+              <p className="text-sm text-muted-foreground">Uploading audio...</p>
+            </div>
+          )}
+
+          {audioUrl && !isUploadingAudio && (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 rounded-lg border p-3">
+                <audio src={audioUrl} controls className="flex-1" />
+                <Button type="button" variant="ghost" size="icon" onClick={removeAudio}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Audio recording attached</p>
+            </div>
+          )}
+        </div>
+
         {error && (
           <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
             <p className="text-sm text-destructive">{error}</p>
@@ -292,7 +377,10 @@ export function NewArtifactForm({
         )}
 
         <div className="flex gap-3">
-          <Button type="submit" disabled={form.formState.isSubmitting || !collectionId || isUploading}>
+          <Button
+            type="submit"
+            disabled={form.formState.isSubmitting || !collectionId || isUploading || isUploadingAudio}
+          >
             {form.formState.isSubmitting ? "Creating..." : "Create Artifact"}
           </Button>
           <Button type="button" variant="outline" asChild>

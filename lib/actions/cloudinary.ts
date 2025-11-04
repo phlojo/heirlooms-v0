@@ -52,6 +52,52 @@ export async function generateCloudinarySignature(userId: string, fileName: stri
 }
 
 /**
+ * Generate a signature for audio file upload to Cloudinary
+ */
+export async function generateCloudinaryAudioSignature(userId: string, fileName: string) {
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME
+  const apiKey = process.env.CLOUDINARY_API_KEY
+  const apiSecret = process.env.CLOUDINARY_API_SECRET
+
+  if (!cloudName || !apiKey || !apiSecret) {
+    return {
+      error:
+        "Cloudinary credentials not configured. Please add CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, and CLOUDINARY_API_SECRET to your environment variables.",
+    }
+  }
+
+  try {
+    const timestamp = Math.round(new Date().getTime() / 1000)
+    const folder = "heirloom/artifacts/audio"
+
+    const sanitizedFileName = fileName
+      .replace(/\.[^/.]+$/, "")
+      .replace(/[^a-zA-Z0-9]/g, "_")
+      .substring(0, 50)
+
+    const publicId = `${folder}/${userId}_${timestamp}_${sanitizedFileName}`
+
+    const stringToSign = `public_id=${publicId}&resource_type=video&timestamp=${timestamp}${apiSecret}`
+    const encoder = new TextEncoder()
+    const data = encoder.encode(stringToSign)
+    const hashBuffer = await crypto.subtle.digest("SHA-1", data)
+    const hashArray = Array.from(new Uint8Array(hashBuffer))
+    const signature = hashArray.map((b) => b.toString(16).padStart(2, "0")).join("")
+
+    return {
+      signature,
+      timestamp,
+      publicId,
+      cloudName,
+      apiKey,
+    }
+  } catch (error) {
+    console.error("[v0] Error generating Cloudinary audio signature:", error)
+    return { error: "Failed to generate upload signature. Please try again." }
+  }
+}
+
+/**
  * Delete a media file from Cloudinary by its public ID
  */
 export async function deleteCloudinaryMedia(publicId: string) {
