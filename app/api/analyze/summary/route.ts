@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server"
 import { openai, getSummaryModel } from "@/lib/ai"
-import { streamObject } from "ai"
+import { generateObject } from "ai"
 import { NextResponse } from "next/server"
 import { z } from "zod"
 import { revalidatePath } from "next/cache"
@@ -11,7 +11,7 @@ const MAX_IMAGE_CAPTIONS = 3
 const summarySchema = z.object({
   description_markdown: z
     .string()
-    .min(1, "Description is required")
+    .min(20, "Description must be at least 20 characters")
     .describe("A concise, factual, warm heirloom description in markdown format"),
   highlights: z.array(z.string()).optional().describe("Key highlights or memorable moments (max 5)"),
   people: z.array(z.string()).optional().describe("Names of people mentioned or identified"),
@@ -92,22 +92,22 @@ export async function POST(request: Request) {
 
     const context = contextParts.join("\n\n")
 
-    console.log("[v0] Starting AI generation with streamObject")
+    console.log("[v0] Starting AI generation with generateObject")
     console.log("[v0] Model:", getSummaryModel())
     console.log("[v0] Context length:", context.length)
 
     try {
-      const { object } = await streamObject({
-        model: openai(getSummaryModel()),
-        schema: summarySchema,
-        system:
-          "You are an AI that generates structured summaries for family heirloom artifacts. " +
-          "Write concise, factual, warm descriptions in markdown format. " +
-          "Never invent facts; use 'likely' or 'appears to' when unsure. " +
-          "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation. " +
-          "The description_markdown field is REQUIRED and must be at least 20 characters. " +
-          "Return a valid JSON object matching the exact schema provided.",
-        prompt: `Based on the following content from a family heirloom artifact, generate a structured summary.
+      const result = await Promise.race([
+        generateObject({
+          model: openai(getSummaryModel()),
+          schema: summarySchema,
+          system:
+            "You are an AI that generates structured summaries for family heirloom artifacts. " +
+            "Write concise, factual, warm descriptions in markdown format. " +
+            "Never invent facts; use 'likely' or 'appears to' when unsure. " +
+            "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation. " +
+            "The description_markdown field is REQUIRED and must be at least 20 characters.",
+          prompt: `Based on the following content from a family heirloom artifact, generate a structured summary.
 
 ${context}
 
@@ -120,18 +120,20 @@ Generate a JSON object with these fields:
 - tags (optional): Array of relevant tags
 
 Focus on creating a meaningful, warm description that captures the essence of this heirloom.`,
-        maxTokens: 2000,
-      })
-
-      console.log("[v0] Waiting for stream to complete...")
-
-      const finalObject = await object
+          maxTokens: 2000,
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("AI generation timed out after 30 seconds")), 30000),
+        ),
+      ])
 
       console.log("[v0] AI generation complete")
-      console.log("[v0] Generated object:", JSON.stringify(finalObject, null, 2))
+      console.log("[v0] Generated object:", JSON.stringify(result, null, 2))
 
-      if (!finalObject.description_markdown || finalObject.description_markdown.length < 1) {
-        throw new Error("AI did not generate a valid description")
+      const finalObject = (result as any).object
+
+      if (!finalObject || !finalObject.description_markdown || finalObject.description_markdown.length < 20) {
+        throw new Error("AI did not generate a valid description (minimum 20 characters required)")
       }
 
       // Save the description to the database
@@ -167,10 +169,7 @@ Focus on creating a meaningful, warm description that captures the essence of th
         name: aiError instanceof Error ? aiError.name : undefined,
       })
 
-      const errorMessage =
-        aiError instanceof Error
-          ? `AI generation failed: ${aiError.message}`
-          : "AI generation failed with unknown error"
+      const errorMessage = aiError instanceof Error ? aiError.message : "AI generation failed with unknown error"
 
       throw new Error(errorMessage)
     }
