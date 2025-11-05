@@ -10,6 +10,7 @@ import { AudioPlayer } from "@/components/audio-player"
 import ReactMarkdown from "react-markdown"
 import { ArtifactAiPanelWrapper } from "@/components/artifact/ArtifactAiPanelWrapper"
 import { GenerateDescriptionButton } from "@/components/artifact/GenerateDescriptionButton"
+import { GenerateImageCaptionButton } from "@/components/artifact/GenerateImageCaptionButton"
 
 function isAudioFile(url: string): boolean {
   return (
@@ -141,9 +142,12 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    {imageCaptions[url] && (
-                      <p className="text-sm text-muted-foreground italic leading-relaxed">{imageCaptions[url]}</p>
-                    )}
+                    <div className="space-y-1">
+                      {imageCaptions[url] && (
+                        <p className="text-sm text-muted-foreground italic leading-relaxed">{imageCaptions[url]}</p>
+                      )}
+                      {canEdit && <GenerateImageCaptionButton artifactId={artifact.id} imageUrl={url} />}
+                    </div>
                   </div>
                 ),
               )
