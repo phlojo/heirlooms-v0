@@ -11,7 +11,7 @@ const MAX_IMAGE_CAPTIONS = 3
 const summarySchema = z.object({
   description_markdown: z
     .string()
-    .min(20, "Description must be at least 20 characters")
+    .min(10, "Description must be at least 10 characters")
     .describe("A concise, factual, warm heirloom description in markdown format"),
   highlights: z.array(z.string()).optional().describe("Key highlights or memorable moments (max 5)"),
   people: z.array(z.string()).optional().describe("Names of people mentioned or identified"),
@@ -96,57 +96,70 @@ export async function POST(request: Request) {
     console.log("[v0] Model:", getSummaryModel())
     console.log("[v0] Context length:", context.length)
 
-    const { object } = await generateObject({
-      model: openai(getSummaryModel()),
-      schema: summarySchema,
-      mode: "json",
-      system:
-        "You are an AI that generates structured summaries for family heirloom artifacts. " +
-        "Write concise, factual, warm descriptions. Never invent facts; use 'likely' or 'appears to' when unsure. " +
-        "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation. " +
-        "Always provide at least a description_markdown field.",
-      prompt: `Based on the following content from a family heirloom artifact, generate a structured summary.
+    try {
+      const { object } = await generateObject({
+        model: openai(getSummaryModel()),
+        schema: summarySchema,
+        system:
+          "You are an AI that generates structured summaries for family heirloom artifacts. " +
+          "Write concise, factual, warm descriptions. Never invent facts; use 'likely' or 'appears to' when unsure. " +
+          "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation. " +
+          "You MUST provide a description_markdown field with at least 10 characters. " +
+          "Return valid JSON matching the schema.",
+        prompt: `Based on the following content from a family heirloom artifact, generate a structured summary.
 
 ${context}
 
 Generate a JSON object with:
-- description_markdown: A warm, factual description (2-4 sentences) in markdown format
+- description_markdown: A warm, factual description (2-4 sentences) in markdown format (REQUIRED)
 - highlights: Array of key moments or details (optional, max 5)
 - people: Array of names mentioned (optional)
 - places: Array of locations mentioned (optional)
 - year_guess: Estimated year as integer (optional)
 - tags: Array of relevant tags (optional)`,
-      maxTokens: 2000,
-    })
-
-    console.log("[v0] AI generation complete")
-    console.log("[v0] Generated object:", JSON.stringify(object, null, 2))
-
-    // Save the description to the database
-    console.log("[v0] Saving ai_description to database")
-    const { data: updateData, error: updateError } = await supabase
-      .from("artifacts")
-      .update({
-        ai_description: object.description_markdown,
-        analysis_status: "done",
-        analysis_error: null,
-        updated_at: new Date().toISOString(),
+        maxTokens: 2000,
       })
-      .eq("id", artifactId)
-      .select()
 
-    if (updateError) {
-      console.error("[v0] ERROR: Failed to save summary:", updateError)
-      throw new Error(`Failed to save summary: ${updateError.message}`)
+      console.log("[v0] AI generation complete")
+      console.log("[v0] Generated object:", JSON.stringify(object, null, 2))
+
+      if (!object.description_markdown || object.description_markdown.length < 10) {
+        throw new Error("AI did not generate a valid description")
+      }
+
+      // Save the description to the database
+      console.log("[v0] Saving ai_description to database")
+      const { data: updateData, error: updateError } = await supabase
+        .from("artifacts")
+        .update({
+          ai_description: object.description_markdown,
+          analysis_status: "done",
+          analysis_error: null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", artifactId)
+        .select()
+
+      if (updateError) {
+        console.error("[v0] ERROR: Failed to save summary:", updateError)
+        throw new Error(`Failed to save summary: ${updateError.message}`)
+      }
+
+      console.log("[v0] Database update successful:", updateData)
+      console.log("[v0] Revalidating paths")
+      revalidatePath(`/artifacts/${artifactId}`)
+      revalidatePath(`/artifacts/${artifactId}/edit`)
+
+      console.log("[v0] === SUMMARY API ROUTE COMPLETE ===")
+      return NextResponse.json({ ok: true, object })
+    } catch (aiError) {
+      console.error("[v0] AI generation error details:", {
+        error: aiError,
+        message: aiError instanceof Error ? aiError.message : "Unknown error",
+        stack: aiError instanceof Error ? aiError.stack : undefined,
+      })
+      throw aiError
     }
-
-    console.log("[v0] Database update successful:", updateData)
-    console.log("[v0] Revalidating paths")
-    revalidatePath(`/artifacts/${artifactId}`)
-    revalidatePath(`/artifacts/${artifactId}/edit`)
-
-    console.log("[v0] === SUMMARY API ROUTE COMPLETE ===")
-    return NextResponse.json({ ok: true, object })
   } catch (error) {
     console.error("[v0] === SUMMARY API ROUTE ERROR ===", error)
 
@@ -156,11 +169,13 @@ Generate a JSON object with:
       const { artifactId } = body
       if (artifactId) {
         const supabase = await createClient()
+        const errorMessage = error instanceof Error ? error.message : "Unknown error occurred"
+        console.log("[v0] Saving error to database:", errorMessage)
         await supabase
           .from("artifacts")
           .update({
             analysis_status: "error",
-            analysis_error: error instanceof Error ? error.message : "Unknown error occurred",
+            analysis_error: errorMessage,
           })
           .eq("id", artifactId)
       }
