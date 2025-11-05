@@ -8,16 +8,12 @@ import { revalidatePath } from "next/cache"
 const MAX_TRANSCRIPT_LENGTH = 10000
 const MAX_IMAGE_CAPTIONS = 3
 
-// Zod schema for structured summary output
 const summarySchema = z.object({
   description_markdown: z
     .string()
-    .min(40, "Description must be at least 40 characters")
+    .min(20, "Description must be at least 20 characters")
     .describe("A concise, factual, warm heirloom description in markdown format"),
-  highlights: z
-    .array(z.string())
-    .max(5, "Maximum 5 highlights")
-    .describe("Key highlights or memorable moments (max 5)"),
+  highlights: z.array(z.string()).optional().describe("Key highlights or memorable moments (max 5)"),
   people: z.array(z.string()).optional().describe("Names of people mentioned or identified"),
   places: z.array(z.string()).optional().describe("Locations or places mentioned"),
   year_guess: z.number().int().optional().describe("Estimated year if determinable from context"),
@@ -100,19 +96,31 @@ export async function POST(request: Request) {
     console.log("[v0] Model:", getSummaryModel())
     console.log("[v0] Context length:", context.length)
 
-    // Generate structured summary using AI
     const { object } = await generateObject({
       model: openai(getSummaryModel()),
       schema: summarySchema,
+      mode: "json",
       system:
-        "You write concise, factual, warm heirloom descriptions. Never invent facts; use 'likely' or 'appears to' when unsure. " +
-        "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation.",
-      prompt: `Based on the following content from a family heirloom artifact, generate a structured summary:\n\n${context}`,
-      maxOutputTokens: 2000,
+        "You are an AI that generates structured summaries for family heirloom artifacts. " +
+        "Write concise, factual, warm descriptions. Never invent facts; use 'likely' or 'appears to' when unsure. " +
+        "Focus on what makes this artifact meaningful and memorable. Be specific but avoid speculation. " +
+        "Always provide at least a description_markdown field.",
+      prompt: `Based on the following content from a family heirloom artifact, generate a structured summary.
+
+${context}
+
+Generate a JSON object with:
+- description_markdown: A warm, factual description (2-4 sentences) in markdown format
+- highlights: Array of key moments or details (optional, max 5)
+- people: Array of names mentioned (optional)
+- places: Array of locations mentioned (optional)
+- year_guess: Estimated year as integer (optional)
+- tags: Array of relevant tags (optional)`,
+      maxTokens: 2000,
     })
 
     console.log("[v0] AI generation complete")
-    console.log("[v0] Generated description preview:", object.description_markdown?.substring(0, 150) + "...")
+    console.log("[v0] Generated object:", JSON.stringify(object, null, 2))
 
     // Save the description to the database
     console.log("[v0] Saving ai_description to database")
