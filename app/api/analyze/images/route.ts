@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server"
 import { getVisionModel } from "@/lib/ai"
 import { generateText } from "ai"
 import { NextResponse } from "next/server"
-import { AbortSignal } from "abortcontroller"
 
 const MAX_IMAGES = 5
 
