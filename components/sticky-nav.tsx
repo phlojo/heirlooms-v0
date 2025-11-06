@@ -45,11 +45,11 @@ export function StickyNav({
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             asChild={!!previousItem}
             disabled={!previousItem}
-            className={`shrink-0 ${!previousItem ? "opacity-50 pointer-events-none hover:bg-transparent" : ""}`}
+            className={`shrink-0 bg-transparent ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
           >
             {previousItem ? (
               <Link href={`/${itemType}s/${previousItem.id}`} title={previousItem.title}>
@@ -63,11 +63,11 @@ export function StickyNav({
           </Button>
           <h1 className="text-balance text-3xl font-bold tracking-tight min-w-0">{title}</h1>
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             asChild={!!nextItem}
             disabled={!nextItem}
-            className={`shrink-0 ${!nextItem ? "opacity-50 pointer-events-none hover:bg-transparent" : ""}`}
+            className={`shrink-0 bg-transparent ${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
           >
             {nextItem ? (
               <Link href={`/${itemType}s/${nextItem.id}`} title={nextItem.title}>
