@@ -60,9 +60,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
         </Button>
 
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            H
-          </div>
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-primary-foreground">H</div>
           <span className="text-lg">Heirlooms</span>
         </Link>
 
