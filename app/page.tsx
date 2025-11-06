@@ -3,25 +3,30 @@ import { getCurrentUser } from "@/lib/supabase/server"
 import { HomeCard } from "@/components/home-card"
 import { createClient } from "@/lib/supabase/server"
 
+export const dynamic = "force-dynamic"
+
 export default async function HomePage() {
   const user = await getCurrentUser()
 
   const supabase = await createClient()
+
   const { data: artifacts } = await supabase
     .from("artifacts")
     .select("media_urls")
     .not("media_urls", "is", null)
-    .limit(3)
-    .order("created_at", { ascending: false })
+    .limit(20)
 
   // Extract first image URL from each artifact's media_urls array
-  const backgroundImages =
+  const allImages =
     artifacts
       ?.map((artifact) => {
         const mediaUrls = artifact.media_urls as string[] | null
         return mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null
       })
       .filter((url): url is string => url !== null) || []
+
+  const shuffled = allImages.sort(() => Math.random() - 0.5)
+  const backgroundImages = shuffled.slice(0, 3)
 
   return (
     <AppLayout user={user}>
