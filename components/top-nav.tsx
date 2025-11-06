@@ -60,7 +60,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
         </Button>
 
         <Link href="/" className="flex items-center gap-2 font-semibold">
-          <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-primary-foreground">
+          <div className="flex h-8 w-8 items-center justify-center rounded bg-gradient-to-br from-primary to-chart-2 text-primary-foreground">
             <svg
               width="20"
               height="22"
