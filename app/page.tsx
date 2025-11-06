@@ -1,9 +1,27 @@
 import { AppLayout } from "@/components/app-layout"
 import { getCurrentUser } from "@/lib/supabase/server"
 import { HomeCard } from "@/components/home-card"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function HomePage() {
   const user = await getCurrentUser()
+
+  const supabase = await createClient()
+  const { data: artifacts } = await supabase
+    .from("artifacts")
+    .select("media_urls")
+    .not("media_urls", "is", null)
+    .limit(3)
+    .order("created_at", { ascending: false })
+
+  // Extract first image URL from each artifact's media_urls array
+  const backgroundImages =
+    artifacts
+      ?.map((artifact) => {
+        const mediaUrls = artifact.media_urls as string[] | null
+        return mediaUrls && mediaUrls.length > 0 ? mediaUrls[0] : null
+      })
+      .filter((url): url is string => url !== null) || []
 
   return (
     <AppLayout user={user}>
@@ -18,15 +36,21 @@ export default async function HomePage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           <HomeCard
             title="Collections"
-            description="Organize what matters most to you into meaningful collections—private or shared with the community. Browse, discover, and enjoy."
+            description="Organize your heirlooms into meaningful collections"
             href="/collections"
+            backgroundImage={backgroundImages[0]}
           />
           <HomeCard
             title="Artifacts"
             description="Document and preserve individual items with rich media"
             href="/artifacts"
+            backgroundImage={backgroundImages[1]}
           />
-          <HomeCard title="Stories" description="Connect artifacts to the stories that make them meaningful" />
+          <HomeCard
+            title="Stories"
+            description="Connect artifacts to the stories that make them meaningful"
+            backgroundImage={backgroundImages[2]}
+          />
         </div>
       </div>
     </AppLayout>
