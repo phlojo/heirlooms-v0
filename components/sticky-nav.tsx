@@ -44,6 +44,7 @@ export function StickyNav({
 
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
+          {/* Previous button, Title, Edit button */}
           <Button
             variant="outline"
             size="icon"
@@ -62,32 +63,31 @@ export function StickyNav({
             )}
           </Button>
           <h1 className="text-balance text-3xl font-bold tracking-tight min-w-0">{title}</h1>
-          <Button
-            variant="outline"
-            size="icon"
-            asChild={!!nextItem}
-            disabled={!nextItem}
-            className={`shrink-0 bg-transparent ${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
-          >
-            {nextItem ? (
-              <Link href={`/${itemType}s/${nextItem.id}`} title={nextItem.title}>
-                <ChevronRight className="h-5 w-5" />
+          {canEdit && editHref && (
+            <Button variant="outline" size="sm" asChild className="shrink-0 bg-transparent ml-2">
+              <Link href={editHref}>
+                <Edit className="h-4 w-4" />
               </Link>
-            ) : (
-              <span>
-                <ChevronRight className="h-5 w-5" />
-              </span>
-            )}
-          </Button>
+            </Button>
+          )}
         </div>
-        {canEdit && editHref && (
-          <Button variant="outline" asChild className="shrink-0 bg-transparent">
-            <Link href={editHref}>
-              <Edit className="mr-2 h-4 w-4" />
-              Edit
+        <Button
+          variant="outline"
+          size="icon"
+          asChild={!!nextItem}
+          disabled={!nextItem}
+          className={`shrink-0 bg-transparent ${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
+        >
+          {nextItem ? (
+            <Link href={`/${itemType}s/${nextItem.id}`} title={nextItem.title}>
+              <ChevronRight className="h-5 w-5" />
             </Link>
-          </Button>
-        )}
+          ) : (
+            <span>
+              <ChevronRight className="h-5 w-5" />
+            </span>
+          )}
+        </Button>
       </div>
     </div>
   )
