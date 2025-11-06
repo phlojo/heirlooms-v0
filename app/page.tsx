@@ -18,7 +18,7 @@ export default async function HomePage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
           <HomeCard
             title="Collections"
-            description="Organize your heirlooms into meaningful collections"
+            description="Organize what matters most to you into meaningful collections—private or shared with the community. Browse, discover, and enjoy."
             href="/collections"
           />
           <HomeCard
