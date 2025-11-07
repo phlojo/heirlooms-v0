@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, ChevronRight } from "lucide-react"
+import { Edit, ChevronRight, ChevronLeftIcon } from "lucide-react"
 import Link from "next/link"
 import { Author } from "@/components/author"
 
@@ -48,13 +48,24 @@ export function ArtifactStickyNav({
     <div className="sticky top-3 lg:top-16 z-50 bg-background/90 border-b rounded-lg">
       <div className="container max-w-7xl mx-auto lg:px-8 py-3 px-0 rounded-lg">
         <div className="flex items-center justify-between gap-4">
-          {/* Left: Back button */}
+          {/* Left: Previous button */}
           <div className="flex items-center gap-2 min-w-0">
-            <Button variant="ghost" size="sm" asChild className="gap-2 shrink-0">
-              <Link href={backHref}>
-                <ArrowLeft className="h-4 w-4" />
-                <span className="text-sm font-medium hidden sm:inline">{displayLabel}</span>
-              </Link>
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild={!!previousItem}
+              disabled={!previousItem}
+              className={`shrink-0 ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
+            >
+              {previousItem ? (
+                <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </Link>
+              ) : (
+                <span>
+                  <ChevronLeftIcon className="h-5 w-5" />
+                </span>
+              )}
             </Button>
           </div>
 
@@ -64,7 +75,7 @@ export function ArtifactStickyNav({
             {authorUserId && <Author userId={authorUserId} authorName={authorName} size="sm" />}
           </div>
 
-          {/* Right: Forward/Edit button */}
+          {/* Right: Edit and Next buttons */}
           <div className="flex items-center gap-2 shrink-0">
             {canEdit && editHref && (
               <Button variant="ghost" size="sm" asChild>
