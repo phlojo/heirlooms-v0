@@ -54,7 +54,7 @@ export function AppLayout({ children, user, noBottomPadding = false }: AppLayout
         </main>
       </div>
 
-      {typeof window !== "undefined" && window.innerWidth < 1024 && <BottomNav user={user} />}
+      {isMobile && <BottomNav user={user} />}
     </div>
   )
 }
