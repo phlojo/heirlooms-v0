@@ -48,7 +48,7 @@ export function AppLayout({ children, user }: AppLayoutProps) {
         </main>
       </div>
 
-      <BottomNav user={user} />
+      {typeof window !== "undefined" && window.innerWidth < 1024 && <BottomNav user={user} />}
     </div>
   )
 }
