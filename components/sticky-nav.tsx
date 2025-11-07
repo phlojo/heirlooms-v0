@@ -19,6 +19,7 @@ interface StickyNavProps {
   editHref?: string
   canEdit?: boolean
   itemType?: "artifact" | "collection"
+  mode?: "all" | "mine" // Add mode to preserve filter context
 }
 
 export function StickyNav({
@@ -30,16 +31,22 @@ export function StickyNav({
   editHref,
   canEdit = false,
   itemType = "artifact",
+  mode, // Accept mode prop
 }: StickyNavProps) {
+  const getNavUrl = (id: string) => {
+    const baseUrl = `/${itemType}s/${id}`
+    return mode ? `${baseUrl}?mode=${mode}` : baseUrl
+  }
+
   return (
     <div className="sticky top-16 z-30 -mx-6 bg-background px-6 pb-4 lg:-mx-8 lg:px-8">
       <div className="mb-4 flex items-center gap-2 mt-2">
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={backHref}>
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            {backLabel}
+        <Button variant="ghost" size="icon" asChild>
+          <Link href={backHref} title={backLabel}>
+            <ArrowLeft className="h-4 w-4" />
           </Link>
         </Button>
+        <span className="text-sm font-medium">{backLabel}</span>
       </div>
 
       <div className="flex items-center justify-between gap-4">
@@ -53,7 +60,7 @@ export function StickyNav({
             className={`shrink-0 bg-transparent ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
           >
             {previousItem ? (
-              <Link href={`/${itemType}s/${previousItem.id}`} title={previousItem.title}>
+              <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
                 <ChevronLeft className="h-5 w-5" />
               </Link>
             ) : (
@@ -79,7 +86,7 @@ export function StickyNav({
           className={`shrink-0 bg-transparent ${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
         >
           {nextItem ? (
-            <Link href={`/${itemType}s/${nextItem.id}`} title={nextItem.title}>
+            <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
               <ChevronRight className="h-5 w-5" />
             </Link>
           ) : (

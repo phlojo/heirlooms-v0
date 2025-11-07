@@ -8,12 +8,21 @@ import { getCollectionBySlug, getAdjacentCollections } from "@/lib/actions/colle
 import { getArtifactsByCollection } from "@/lib/actions/artifacts"
 import { ArtifactCard } from "@/components/artifact-card"
 import { DeleteCollectionButton } from "@/components/delete-collection-button"
-import { StickyNavWithTabs } from "@/components/sticky-nav-with-tabs"
+import { StickyNav } from "@/components/sticky-nav"
 
-export default async function CollectionDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function CollectionDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>
+  searchParams: Promise<{ mode?: string }>
+}) {
   const user = await getCurrentUser()
 
   const { slug } = await params
+  const { mode: rawMode } = await searchParams
+
+  const mode: "all" | "mine" | "both" = rawMode === "all" ? "all" : rawMode === "mine" ? "mine" : "both"
 
   if (slug === "new") {
     redirect("/collections/new")
@@ -34,14 +43,12 @@ export default async function CollectionDetailPage({ params }: { params: Promise
 
   const artifacts = await getArtifactsByCollection(collection.id)
 
-  // The client component will handle filtering based on the active tab
-  const mode = "both" // This will be overridden by client-side tab selection
   const { previous, next } = await getAdjacentCollections(collection.id, user?.id || null, mode)
 
   return (
     <AppLayout user={user}>
       <div className="space-y-8">
-        <StickyNavWithTabs
+        <StickyNav
           title={collection.title}
           backHref="/collections"
           backLabel="All Collections"
@@ -50,9 +57,7 @@ export default async function CollectionDetailPage({ params }: { params: Promise
           editHref={`/collections/${collection.id}/edit`}
           canEdit={canEdit}
           itemType="collection"
-          userId={user?.id || null}
-          collectionId={collection.id}
-          currentCreatedAt={collection.created_at}
+          mode={mode === "both" ? undefined : mode}
         />
 
         <div className="space-y-4">
