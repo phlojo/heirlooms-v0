@@ -37,12 +37,13 @@ export default function BottomNav() {
       <div className="flex h-full items-center justify-around px-2">
         {navItems.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href
+          const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href)
 
           return (
             <Link
               key={item.href}
               href={item.href}
+              aria-current={isActive ? "page" : undefined}
               className={cn(
                 "flex min-w-[44px] flex-col items-center justify-center gap-1 rounded-lg px-3 py-2 transition-colors",
                 "hover:bg-accent",
