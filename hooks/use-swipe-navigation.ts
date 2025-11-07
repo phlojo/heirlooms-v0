@@ -7,6 +7,7 @@ interface SwipeNavigationOptions {
   previousUrl?: string | null
   nextUrl?: string | null
   disabled?: boolean
+  onNavigate?: () => void
 }
 
 /**
@@ -14,7 +15,7 @@ interface SwipeNavigationOptions {
  * Swipe left → navigate to next item
  * Swipe right → navigate to previous item
  */
-export function useSwipeNavigation({ previousUrl, nextUrl, disabled = false }: SwipeNavigationOptions) {
+export function useSwipeNavigation({ previousUrl, nextUrl, disabled = false, onNavigate }: SwipeNavigationOptions) {
   const router = useRouter()
   const touchStartX = useRef<number | null>(null)
   const touchStartY = useRef<number | null>(null)
@@ -43,9 +44,13 @@ export function useSwipeNavigation({ previousUrl, nextUrl, disabled = false }: S
       if (isHorizontalSwipe && meetsThreshold) {
         if (deltaX > 0 && previousUrl) {
           // Swipe right → go to previous
+          console.log("[v0] Swiped right, navigating to previous")
+          onNavigate?.()
           router.push(previousUrl)
         } else if (deltaX < 0 && nextUrl) {
           // Swipe left → go to next
+          console.log("[v0] Swiped left, navigating to next")
+          onNavigate?.()
           router.push(nextUrl)
         }
       }
@@ -62,5 +67,5 @@ export function useSwipeNavigation({ previousUrl, nextUrl, disabled = false }: S
       document.removeEventListener("touchstart", handleTouchStart)
       document.removeEventListener("touchend", handleTouchEnd)
     }
-  }, [previousUrl, nextUrl, disabled, router])
+  }, [previousUrl, nextUrl, disabled, router, onNavigate])
 }

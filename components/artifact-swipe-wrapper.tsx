@@ -1,10 +1,12 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState } from "react"
+import { useState } from "react"
 
 import { useSwipeNavigation } from "@/hooks/use-swipe-navigation"
 import { SwipeGuidance } from "@/components/swipe-guidance"
+
+const STORAGE_KEY = "heirlooms_swipe_guidance_dismissed_artifact"
 
 interface ArtifactSwipeWrapperProps {
   previousUrl: string | null
@@ -13,23 +15,31 @@ interface ArtifactSwipeWrapperProps {
 }
 
 export function ArtifactSwipeWrapper({ previousUrl, nextUrl, children }: ArtifactSwipeWrapperProps) {
-  const [showGuidance, setShowGuidance] = useState(true)
+  const [showGuidance, setShowGuidance] = useState(() => {
+    if (typeof window === "undefined") return false
+    return !localStorage.getItem(STORAGE_KEY) && (previousUrl !== null || nextUrl !== null)
+  })
 
-  useSwipeNavigation({ previousUrl, nextUrl })
-
-  useEffect(() => {
-    const handleNavigationDismiss = () => {
-      setShowGuidance(false)
+  const handleDismiss = () => {
+    console.log("[v0] Dismissing artifact guidance")
+    setShowGuidance(false)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY, "true")
     }
+  }
 
-    // Hide guidance when URLs change (navigation occurred)
-    handleNavigationDismiss()
-  }, [previousUrl, nextUrl])
+  useSwipeNavigation({
+    previousUrl,
+    nextUrl,
+    onNavigate: handleDismiss,
+  })
+
+  console.log("[v0] ArtifactSwipeWrapper", { showGuidance, previousUrl, nextUrl })
 
   return (
     <>
       {children}
-      {showGuidance && (previousUrl || nextUrl) && <SwipeGuidance />}
+      {showGuidance && <SwipeGuidance onDismiss={handleDismiss} />}
     </>
   )
 }
