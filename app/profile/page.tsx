@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { redirect } from "next/navigation"
 import { Package, ImageIcon, Calendar, Mail, User, Settings } from "lucide-react"
 import { ThemePreferenceToggle } from "@/components/theme-preference-toggle"
+import { LogoutButton } from "@/components/logout-button"
 
 async function getUserProfile(userId: string) {
   const supabase = await createClient()
@@ -55,9 +56,12 @@ export default async function ProfilePage() {
   return (
     <AppLayout user={user}>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
-          <p className="mt-1 text-muted-foreground">View and manage your account information</p>
+        <div className="flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Profile</h1>
+            <p className="mt-1 text-muted-foreground">View and manage your account information</p>
+          </div>
+          <LogoutButton />
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
