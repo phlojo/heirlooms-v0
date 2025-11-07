@@ -69,7 +69,7 @@ export function Author({ userId, authorName, size = "md", showAvatar = true, cla
         )}
       >
         {showAvatar && <User className={`${iconSizes[size]}`} />}
-        <span>by ...</span>
+        <span>...</span>
       </div>
     )
   }
@@ -83,7 +83,7 @@ export function Author({ userId, authorName, size = "md", showAvatar = true, cla
       )}
     >
       {showAvatar && <User className={`${iconSizes[size]}`} />}
-      <span>by {displayName}</span>
+      <span>{displayName}</span>
     </div>
   )
 }
