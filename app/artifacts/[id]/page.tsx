@@ -62,27 +62,20 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
   return (
     <AppLayout user={user}>
       <ArtifactSwipeWrapper previousUrl={previousUrl} nextUrl={nextUrl}>
-        <div className="space-y-8 -mx-6 lg:-mx-8">
-          <div className="px-6 lg:px-8">
-            <StickyNav
-              title={artifact.title}
-              backHref={collectionHref}
-              backLabel={`${artifact.collection?.title || "Uncategorized"} Collection`}
-              previousItem={previous}
-              nextItem={next}
-              editHref={`/artifacts/${id}/edit`}
-              canEdit={canEdit}
-              itemType="artifact"
-            />
-            {artifact.author_name && (
-              <div className="mt-3">
-                <span className="inline-flex items-center rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
-                  by {artifact.author_name}
-                </span>
-              </div>
-            )}
-          </div>
+        <StickyNav
+          title={artifact.title}
+          backHref={collectionHref}
+          backLabel={`${artifact.collection?.title || "Uncategorized"} Collection`}
+          previousItem={previous}
+          nextItem={next}
+          editHref={`/artifacts/${id}/edit`}
+          canEdit={canEdit}
+          itemType="artifact"
+          authorUserId={artifact.user_id}
+          authorName={artifact.author_name}
+        />
 
+        <div className="space-y-8">
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="space-y-4">
               {artifact.media_urls && artifact.media_urls.length > 0 ? (
