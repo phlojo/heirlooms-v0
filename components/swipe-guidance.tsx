@@ -13,7 +13,7 @@ export function SwipeGuidance({ onDismiss }: SwipeGuidanceProps) {
       role="status"
       aria-live="polite"
     >
-      <div className="bg-foreground text-background px-5 py-3 rounded-full shadow-lg flex items-center gap-3 text-sm font-medium">
+      <div className="bg-foreground text-background px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-3 text-sm font-medium">
         <ArrowLeft className="h-5 w-5" />
         <span>Swipe to navigate</span>
         <ArrowRight className="h-5 w-5" />
