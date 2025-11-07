@@ -1,11 +1,8 @@
 import { AppLayout } from "@/components/app-layout"
-import { createServerClient } from "@/lib/supabase/server"
+import { getCurrentUser } from "@/lib/supabase/server"
 
 export default async function StoriesPage() {
-  const supabase = await createServerClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getCurrentUser()
 
   return (
     <AppLayout user={user}>
