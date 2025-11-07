@@ -72,11 +72,11 @@ export function StickyNav({
               </Button>
             ) : (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 asChild={!!previousItem}
                 disabled={!previousItem}
-                className={`shrink-0 bg-transparent ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
+                className={`shrink-0 ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
               >
                 {previousItem ? (
                   <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
@@ -100,7 +100,7 @@ export function StickyNav({
           {/* Right: Forward/Edit button */}
           <div className="flex items-center gap-2 shrink-0">
             {canEdit && editHref && (
-              <Button variant="outline" size="sm" asChild className="bg-transparent">
+              <Button variant="ghost" size="sm" asChild>
                 <Link href={editHref}>
                   <Edit className="h-4 w-4" />
                 </Link>
@@ -108,11 +108,11 @@ export function StickyNav({
             )}
             {!showBackButton && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="icon"
                 asChild={!!nextItem}
                 disabled={!nextItem}
-                className={`bg-transparent ${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
+                className={`${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
               >
                 {nextItem ? (
                   <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
