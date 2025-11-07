@@ -82,6 +82,7 @@ export default async function HomePage() {
           <HomeCard
             title="Stories"
             description="Connect artifacts to the stories that make them meaningful"
+            href="/stories"
             backgroundImage={backgroundImages[2]}
           />
         </div>
