@@ -44,12 +44,13 @@ export function StickyNav({
   }
 
   const truncateBackLabel = (label: string) => {
-    const withoutSuffix = label.endsWith(" Collection") ? label.slice(0, -11) : label
-
-    // Truncate to 20 characters
-    const truncated = withoutSuffix.length > 20 ? withoutSuffix.slice(0, 20) + "..." : withoutSuffix
-
-    return truncated
+    if (itemType === "collection") {
+      return label.length > 20 ? label.slice(0, 20) + "..." : label
+    } else {
+      const withoutSuffix = label.endsWith(" Collection") ? label.slice(0, -11) : label
+      const truncated = withoutSuffix.length > 20 ? withoutSuffix.slice(0, 20) + "..." : withoutSuffix
+      return truncated + " Collection"
+    }
   }
 
   const displayLabel = truncateBackLabel(backLabel)
