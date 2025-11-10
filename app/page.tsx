@@ -75,7 +75,7 @@ export default async function HomePage() {
           />
           <HomeCard
             title="Collections"
-            description="Organize your heirlooms into meaningful collections"
+            description="Organize your collections and explore those created by the community."
             href="/collections"
             backgroundImage={backgroundImages[0]}
           />
