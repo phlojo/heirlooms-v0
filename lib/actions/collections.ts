@@ -311,18 +311,23 @@ export async function deleteCollection(collectionId: string, deleteArtifacts = f
       }
     }
 
-    // Delete artifacts
     await supabase.from("artifacts").delete().eq("collection_id", collectionId)
   } else {
-    // Move artifacts to "Unsorted" by setting collection_id to null
-    await supabase.from("artifacts").update({ collection_id: null }).eq("collection_id", collectionId)
+    const { error: updateError } = await supabase
+      .from("artifacts")
+      .update({ collection_id: null })
+      .eq("collection_id", collectionId)
+
+    if (updateError) {
+      console.error("Error moving artifacts to Unsorted:", updateError)
+    }
   }
 
   // Delete the collection
   const { error } = await supabase.from("collections").delete().eq("id", collectionId)
 
   if (error) {
-    console.error("[v0] Collection deletion error:", error)
+    console.error("Collection deletion error:", error)
     return { success: false, error: "Failed to delete collection. Please try again." }
   }
 

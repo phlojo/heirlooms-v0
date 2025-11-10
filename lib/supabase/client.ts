@@ -13,11 +13,8 @@ export function resetClient() {
  */
 export function createClient() {
   if (globalClient) {
-    console.log("[v0] Reusing existing Supabase client")
     return globalClient
   }
-
-  console.log("[v0] Creating new Supabase client")
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY

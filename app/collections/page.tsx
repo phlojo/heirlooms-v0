@@ -6,14 +6,15 @@ async function getMyCollections(userId: string) {
   const supabase = await createClient()
 
   try {
-    console.log("[v0] Fetching unsorted artifacts for user:", userId)
     const { data: unsortedArtifacts, error: unsortedError } = await supabase
       .from("artifacts")
       .select("id, media_urls")
       .eq("user_id", userId)
       .is("collection_id", null)
 
-    console.log("[v0] Unsorted artifacts query result:", { count: unsortedArtifacts?.length, error: unsortedError })
+    if (unsortedError) {
+      console.error("Error fetching unsorted artifacts:", unsortedError)
+    }
 
     const unsortedCount = unsortedArtifacts?.length || 0
     const unsortedThumbnails = unsortedArtifacts?.map((a) => a.media_urls?.[0]).filter(Boolean) || []
@@ -28,7 +29,7 @@ async function getMyCollections(userId: string) {
       .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("[v0] Error fetching my collections:", error)
+      console.error("Error fetching my collections:", error)
       return []
     }
 
@@ -53,30 +54,27 @@ async function getMyCollections(userId: string) {
     )
 
     if (unsortedCount > 0) {
-      console.log("[v0] Creating Unsorted collection with", unsortedCount, "artifacts")
-      return [
-        {
-          id: "unsorted",
-          title: "Unsorted",
-          description: null,
-          slug: "unsorted",
-          thumbnailImages: unsortedThumbnails.slice(0, 5),
-          itemCount: unsortedCount,
-          user_id: userId,
-          is_public: false,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          cover_image: null,
-          isUnsorted: true, // Special flag to identify this collection
-        },
-        ...collectionsWithImages,
-      ]
+      const unsortedCollection = {
+        id: "unsorted",
+        title: "Unsorted",
+        description: null,
+        slug: "unsorted",
+        thumbnailImages: unsortedThumbnails.slice(0, 5),
+        itemCount: unsortedCount,
+        user_id: userId,
+        is_public: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        cover_image: null,
+        isUnsorted: true,
+      }
+
+      return [unsortedCollection, ...collectionsWithImages]
     }
 
-    console.log("[v0] No unsorted artifacts found, returning", collectionsWithImages.length, "collections")
     return collectionsWithImages
   } catch (error) {
-    console.error("[v0] Unexpected error in getMyCollections:", error)
+    console.error("Unexpected error in getMyCollections:", error)
     return []
   }
 }
@@ -95,7 +93,7 @@ async function getAllPublicCollections() {
       .order("created_at", { ascending: false })
 
     if (error) {
-      console.error("[v0] Error fetching public collections:", error)
+      console.error("Error fetching public collections:", error)
       return []
     }
 
@@ -121,7 +119,7 @@ async function getAllPublicCollections() {
 
     return collectionsWithImages
   } catch (error) {
-    console.error("[v0] Unexpected error in getAllPublicCollections:", error)
+    console.error("Unexpected error in getAllPublicCollections:", error)
     return []
   }
 }
