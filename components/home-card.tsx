@@ -22,7 +22,7 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
           />
-          <div className="absolute inset-0 bg-black/60" />
+          <div className="absolute inset-0 bg-black/60 py-4 px-4" />
         </>
       )}
       <div className="relative z-10 pr-20">
@@ -31,7 +31,7 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
       </div>
       <div className="flex justify-end relative z-10 self-end">
         <div
-          className={`flex h-16 w-16 items-center justify-center rounded-2xl ${
+          className={`flex h-16 w-16 items-center justify-center rounded-full ${
             backgroundImage ? "bg-white/20 text-white backdrop-blur-sm" : "text-primary-foreground bg-primary"
           }`}
         >
