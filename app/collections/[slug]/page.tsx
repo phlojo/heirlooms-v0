@@ -151,7 +151,7 @@ export default async function CollectionDetailPage({
             {isUnsorted && (
               <div className="rounded-lg border border-dashed bg-muted/20 p-4">
                 <p className="text-sm text-muted-foreground mb-3">
-                  These artifacts need a home. You can create them without a collection and assign them later.
+                  These artifacts don't have a home yet. They were left behind from deleted collections or created without one. You can assign and organize them anytime.
                 </p>
               </div>
             )}
