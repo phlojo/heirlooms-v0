@@ -11,7 +11,7 @@ interface HomeCardProps {
 
 export function HomeCard({ title, description, href, backgroundImage }: HomeCardProps) {
   const content = (
-    <div className="relative flex flex-col justify-between items-stretch p-6 bg-black h-full overflow-hidden">
+    <div className="relative h-full overflow-hidden p-5 bg-black">
       {backgroundImage && (
         <>
           <Image
@@ -22,21 +22,21 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             priority
           />
-          <div className="absolute inset-0 bg-black/60 py-4 px-4" />
+          <div className="absolute inset-0 bg-black/60" />
         </>
       )}
+
       <div className="relative z-10 pr-20">
         <h2 className={`font-semibold text-2xl ${backgroundImage ? "text-white" : ""}`}>{title}</h2>
         <p className={`mt-2 text-sm ${backgroundImage ? "text-white/90" : "text-muted-foreground"}`}>{description}</p>
       </div>
-      <div className="flex justify-end relative z-10 self-end">
-        <div
-          className={`flex h-16 w-16 items-center justify-center rounded-sm ${
-            backgroundImage ? "bg-white/20 text-white backdrop-blur-sm" : "text-primary-foreground bg-primary"
-          }`}
-        >
-          <Plus className="h-8 w-8" />
-        </div>
+
+      <div
+        className={`absolute bottom-5 right-5 z-10 flex h-16 w-16 items-center justify-center rounded-sm ${
+          backgroundImage ? "bg-white/20 text-white backdrop-blur-sm" : "text-primary-foreground bg-primary"
+        }`}
+      >
+        <Plus className="h-8 w-8" />
       </div>
     </div>
   )
