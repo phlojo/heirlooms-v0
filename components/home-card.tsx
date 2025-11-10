@@ -11,7 +11,7 @@ interface HomeCardProps {
 
 export function HomeCard({ title, description, href, backgroundImage }: HomeCardProps) {
   const content = (
-    <div className="relative flex flex-col justify-between items-stretch p-6 bg-black min-h-[200px] md:min-h-[250px]">
+    <div className="relative flex flex-col justify-between items-stretch p-6 bg-black h-full overflow-hidden">
       {backgroundImage && (
         <>
           <Image
@@ -20,6 +20,7 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
             fill
             className="object-cover"
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            priority
           />
           <div className="absolute inset-0 bg-black/60" />
         </>
@@ -44,12 +45,12 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
     return (
       <Link
         href={href}
-        className="block rounded-lg border bg-card overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02]"
+        className="block rounded-lg border bg-card overflow-hidden transition-all hover:shadow-lg hover:scale-[1.02] h-full"
       >
         {content}
       </Link>
     )
   }
 
-  return <div className="rounded-lg border bg-card overflow-hidden">{content}</div>
+  return <div className="rounded-lg border bg-card overflow-hidden h-full">{content}</div>
 }
