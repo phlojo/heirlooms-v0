@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Edit, ChevronRight, ChevronLeftIcon } from "lucide-react"
+import { Edit, ArrowRight, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Author } from "@/components/author"
 import { CollectionLabel } from "@/components/collection-label"
@@ -62,15 +62,15 @@ export function ArtifactStickyNav({
               size="icon"
               asChild={!!previousItem}
               disabled={!previousItem}
-              className={`shrink-0 ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
+              className={`shrink-0 ${!previousItem ? "opacity-30 pointer-events-none" : ""}`}
             >
               {previousItem ? (
                 <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
-                  <ChevronLeftIcon className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" />
                 </Link>
               ) : (
                 <span>
-                  <ChevronLeftIcon className="h-5 w-5" />
+                  <ArrowLeft className="h-5 w-5" />
                 </span>
               )}
             </Button>
@@ -116,15 +116,15 @@ export function ArtifactStickyNav({
               size="icon"
               asChild={!!nextItem}
               disabled={!nextItem}
-              className={`${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
+              className={`${!nextItem ? "opacity-30 pointer-events-none" : ""}`}
             >
               {nextItem ? (
                 <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
-                  <ChevronRight className="h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </Link>
               ) : (
                 <span>
-                  <ChevronRight className="h-5 w-5" />
+                  <ArrowRight className="h-5 w-5" />
                 </span>
               )}
             </Button>

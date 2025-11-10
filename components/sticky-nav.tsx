@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, ChevronLeft, ChevronRight } from "lucide-react"
+import { ArrowLeft, Edit, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Author } from "@/components/author"
 
@@ -76,15 +76,15 @@ export function StickyNav({
                 size="icon"
                 asChild={!!previousItem}
                 disabled={!previousItem}
-                className={`shrink-0 ${!previousItem ? "opacity-50 pointer-events-none" : ""}`}
+                className={`shrink-0 ${!previousItem ? "opacity-30 pointer-events-none" : ""}`}
               >
                 {previousItem ? (
                   <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
-                    <ChevronLeft className="h-5 w-5" />
+                    <ArrowLeft className="h-5 w-5" />
                   </Link>
                 ) : (
                   <span>
-                    <ChevronLeft className="h-5 w-5" />
+                    <ArrowLeft className="h-5 w-5" />
                   </span>
                 )}
               </Button>
@@ -112,15 +112,15 @@ export function StickyNav({
                 size="icon"
                 asChild={!!nextItem}
                 disabled={!nextItem}
-                className={`${!nextItem ? "opacity-50 pointer-events-none" : ""}`}
+                className={`${!nextItem ? "opacity-30 pointer-events-none" : ""}`}
               >
                 {nextItem ? (
                   <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
-                    <ChevronRight className="h-5 w-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </Link>
                 ) : (
                   <span>
-                    <ChevronRight className="h-5 w-5" />
+                    <ArrowRight className="h-5 w-5" />
                   </span>
                 )}
               </Button>
