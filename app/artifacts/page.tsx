@@ -41,7 +41,7 @@ export default async function ArtifactsPage() {
               </div>
               All Artifacts
             </h1>
-            <p className="mt-1 text-muted-foreground">Browse artifacts from public collections</p>
+            <p className="mt-1 text-muted-foreground">Explore the things that matter—your artifacts and those treasured by others.</p>
           </div>
         </div>
 
