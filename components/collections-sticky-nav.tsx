@@ -5,7 +5,7 @@ import { ArrowLeft, Edit, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Author } from "@/components/author"
 
-interface StickyNavProps {
+interface CollectionsStickyNavProps {
   title: string
   backHref: string
   backLabel: string
@@ -39,7 +39,7 @@ export function CollectionsStickyNav({
   authorUserId,
   authorName,
   showBackButton = true,
-}: StickyNavProps) {
+}: CollectionsStickyNavProps) {
   const getNavUrl = (id: string) => {
     const baseUrl = `/${itemType}s/${id}`
     return mode ? `${baseUrl}?mode=${mode}` : baseUrl
