@@ -132,7 +132,7 @@ export default async function CollectionDetailPage({
             {collection.description && <p className="text-muted-foreground">{collection.description}</p>}
 
             {canEdit && !isUnsorted && (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center justify-between">
                 <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
                   <Link href={`/artifacts/new?collectionId=${collection.id}`}>
                     <Plus className="mr-2 h-4 w-4" />
