@@ -12,7 +12,7 @@ async function getAppOrigin() {
   return `${protocol}://${host}`
 }
 
-export async function signInWithPassword(email: string, password: string) {
+export async function signInWithPassword(email: string, password: string, returnTo?: string) {
   const supabase = await createClient()
 
   const { data, error } = await supabase.auth.signInWithPassword({
@@ -25,17 +25,21 @@ export async function signInWithPassword(email: string, password: string) {
   }
 
   revalidatePath("/", "layout")
-  redirect("/collections")
+  redirect(returnTo || "/collections")
 }
 
-export async function signInWithMagicLink(email: string) {
+export async function signInWithMagicLink(email: string, returnTo?: string) {
   const supabase = await createClient()
   const origin = await getAppOrigin()
+
+  const callbackUrl = returnTo
+    ? `${origin}/auth/callback?next=${encodeURIComponent(returnTo)}`
+    : `${origin}/auth/callback`
 
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${origin}/auth/callback`,
+      emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || callbackUrl,
     },
   })
 

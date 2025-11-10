@@ -11,6 +11,7 @@ import { signInWithPassword, signInWithMagicLink } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
 import BottomNav from "@/components/navigation/bottom-nav"
 import { useIsMobile } from "@/hooks/use-mobile"
+import { useSearchParams } from "next/navigation"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -21,6 +22,8 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const isMobile = useIsMobile()
+  const searchParams = useSearchParams()
+  const returnTo = searchParams.get("returnTo") || "/collections"
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
@@ -31,13 +34,13 @@ export default function LoginPage() {
 
       const redirectTo =
         typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback`
+          ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`
           : process.env.NEXT_PUBLIC_SITE_URL
-            ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
-            : "/auth/callback"
+            ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(returnTo)}`
+            : `/auth/callback?next=${encodeURIComponent(returnTo)}`
 
       console.log("[v0] Google OAuth redirect URL:", redirectTo)
-      console.log("[v0] Current origin:", window.location.origin)
+      console.log("[v0] Return to after login:", returnTo)
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -72,7 +75,7 @@ export default function LoginPage() {
     setSuccess(null)
 
     try {
-      const result = await signInWithMagicLink(email)
+      const result = await signInWithMagicLink(email, returnTo)
       if (result.error) {
         setError(`Unable to send magic link: ${result.error}. Please check your email address and try again.`)
       } else if (result.success) {
@@ -93,7 +96,7 @@ export default function LoginPage() {
     setSuccess(null)
 
     try {
-      const result = await signInWithPassword(email, password)
+      const result = await signInWithPassword(email, password, returnTo)
       if (result?.error) {
         setError(`Sign in failed: ${result.error}. Please verify your credentials and try again.`)
       }
