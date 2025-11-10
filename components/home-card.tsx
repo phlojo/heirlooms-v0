@@ -31,7 +31,7 @@ export function HomeCard({ title, description, href, backgroundImage }: HomeCard
       </div>
       <div className="flex justify-end relative z-10 self-end">
         <div
-          className={`flex h-16 w-16 items-center justify-center rounded-full ${
+          className={`flex h-16 w-16 items-center justify-center rounded-sm ${
             backgroundImage ? "bg-white/20 text-white backdrop-blur-sm" : "text-primary-foreground bg-primary"
           }`}
         >
