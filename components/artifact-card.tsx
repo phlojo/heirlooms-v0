@@ -44,7 +44,7 @@ export function ArtifactCard({ artifact, showAuthor = false, authorName }: Artif
         </div>
 
         <CardHeader className="pb-2 pt-3 px-3">
-          <h3 className="font-semibold text-sm leading-tight line-clamp-1">{artifact.title}</h3>
+          <h3 className="font-semibold text-sm leading-tight truncate">{artifact.title}</h3>
         </CardHeader>
 
         <CardContent className="pt-0 pb-3 px-3">
