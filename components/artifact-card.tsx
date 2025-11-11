@@ -28,7 +28,7 @@ export function ArtifactCard({ artifact, showAuthor = false, authorName }: Artif
 
   return (
     <Link href={`/artifacts/${artifact.id}`}>
-      <Card className="group overflow-hidden border p-0 transition-all hover:shadow-lg rounded-tl-md rounded-tr-md rounded-bl-md rounded-br-none">
+      <Card className="group overflow-hidden border p-0 transition-all hover:shadow-lg rounded-md">
         <div className="relative aspect-square overflow-hidden bg-muted">
           {thumbnailUrl ? (
             <img
