@@ -11,7 +11,7 @@ export async function middleware(request: NextRequest) {
     "img-src 'self' data: blob: https://res.cloudinary.com",
     "script-src 'self' 'unsafe-inline' 'unsafe-eval'", // Next dev/previews may need 'unsafe-eval'
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "connect-src 'self' https://*.supabase.co https://res.cloudinary.com https://*.vercel.app",
+    "connect-src 'self' https://*.supabase.co https://res.cloudinary.com https://api.cloudinary.com https://*.vercel.app",
     "frame-ancestors 'none'",
     "object-src 'none'",
   ].join("; ")
