@@ -105,11 +105,11 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
                     </div>
                   ) : (
                     <div key={index} className="space-y-2">
-                      <div className="aspect-square overflow-hidden bg-muted -mx-6 lg:-mx-8">
+                      <div className="min-h-[400px] overflow-hidden bg-muted -mx-6 lg:-mx-8 flex items-center justify-center">
                         <img
                           src={getDetailUrl(url) || "/placeholder.svg"}
                           alt={`${artifact.title} - Image ${index + 1}`}
-                          className="h-full w-full object-cover"
+                          className="max-h-[600px] w-full object-contain"
                         />
                       </div>
                       <div className="space-y-1 px-6 lg:px-8">
@@ -122,10 +122,8 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
                   ),
                 )
               ) : (
-                <div className="aspect-square overflow-hidden bg-muted">
-                  <div className="flex h-full items-center justify-center">
-                    <p className="text-sm text-muted-foreground">No media available</p>
-                  </div>
+                <div className="min-h-[400px] overflow-hidden bg-muted flex items-center justify-center">
+                  <p className="text-sm text-muted-foreground">No media available</p>
                 </div>
               )}
             </div>
