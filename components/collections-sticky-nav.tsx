@@ -80,7 +80,7 @@ export function CollectionsStickyNav({
           {showBackButton && <div className="w-px h-9 bg-border shrink-0" />}
 
           {/* Center-Left: Title and Author stacked, left-justified */}
-          <div className="flex flex-col justify-center gap-0.5 flex-1 min-w-0 h-9">
+          <div className="flex flex-col justify-center gap-0.5 flex-1 min-w-0 py-0.5">
             <h1 className="font-bold tracking-tight text-left truncate w-full text-base leading-tight">{title}</h1>
             {authorUserId && (
               <div className="text-left">
