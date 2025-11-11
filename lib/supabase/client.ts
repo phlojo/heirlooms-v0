@@ -31,17 +31,6 @@ export function createClient() {
   }
 
   globalClient = createSupabaseBrowserClient(supabaseUrl, supabaseAnonKey, {
-    auth: {
-      detectSessionInUrl: true,
-      persistSession: true,
-      storageKey: "sb-auth-token",
-    },
-    global: {
-      headers: {
-        "X-Client-Info": "supabase-js-web",
-      },
-    },
-    // Suppress the multiple instances warning in development
     isSingleton: true,
   })
 

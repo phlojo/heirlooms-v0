@@ -54,7 +54,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:flex">
-      <div className="flex h-16 items-center gap-4 px-4 lg:px-6">
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 lg:px-6">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
@@ -99,7 +99,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
           <span className="text-lg">Heirlooms</span>
         </Link>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <ThemeToggle />
 
           {user ? (

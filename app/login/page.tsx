@@ -31,18 +31,10 @@ export default function LoginPage() {
 
     try {
       const supabase = createClient()
+      const baseUrl = window.location.origin
+      const redirectTo = `${baseUrl}/auth/callback?next=${encodeURIComponent(returnTo)}`
 
-      const redirectTo =
-        typeof window !== "undefined"
-          ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`
-          : process.env.NEXT_PUBLIC_SITE_URL
-            ? `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback?next=${encodeURIComponent(returnTo)}`
-            : `/auth/callback?next=${encodeURIComponent(returnTo)}`
-
-      console.log("[v0] Google OAuth redirect URL:", redirectTo)
-      console.log("[v0] Return to after login:", returnTo)
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
           redirectTo,
@@ -52,18 +44,13 @@ export default function LoginPage() {
         },
       })
 
-      console.log("[v0] OAuth response:", { url: data?.url, error })
-
       if (error) {
-        setError(`Google sign-in failed: ${error.message}. Please try again.`)
+        setError(`Google sign-in failed: ${error.message}`)
         setIsGoogleLoading(false)
-      } else if (data?.url) {
-        // Browser will redirect to Google OAuth
-        window.location.href = data.url
       }
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred"
-      setError(`Google sign-in failed: ${errorMessage}. Please try again.`)
+      setError(`Google sign-in failed: ${errorMessage}`)
       setIsGoogleLoading(false)
     }
   }
@@ -100,7 +87,6 @@ export default function LoginPage() {
       if (result?.error) {
         setError(`Sign in failed: ${result.error}. Please verify your credentials and try again.`)
       }
-      // If successful, the server action will redirect
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "An error occurred"
       setError(`Sign in failed: ${errorMessage}. Please verify your credentials and try again.`)
