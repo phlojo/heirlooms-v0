@@ -101,11 +101,12 @@ export default function LoginPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl">Login to Heirlooms</CardTitle>
-            <CardDescription>Choose a sign-in method</CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={isMagicLink ? handleMagicLink : handlePasswordLogin}>
               <div className="flex flex-col gap-6">
+                <CardDescription>Choose a sign-in method</CardDescription>
+
                 <Button
                   type="button"
                   variant="outline"
