@@ -6,24 +6,25 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useState } from "react"
-import Link from "next/link"
 import { signInWithPassword, signInWithMagicLink } from "@/lib/actions/auth"
 import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
 interface LoginModuleProps {
   /** The URL to redirect to after successful login */
   returnTo?: string
   /** Optional title override */
   title?: string
-  /** Whether to show the "Back to home" link */
-  showHomeLink?: boolean
+  /** Whether to show the "Back" button */
+  showBackButton?: boolean
 }
 
 export function LoginModule({
   returnTo = "/collections",
   title = "Login to Heirlooms",
-  showHomeLink = true,
+  showBackButton = true,
 }: LoginModuleProps) {
+  const router = useRouter()
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
@@ -31,6 +32,10 @@ export function LoginModule({
   const [password, setPassword] = useState("")
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+
+  const handleBack = () => {
+    router.back()
+  }
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true)
@@ -191,14 +196,15 @@ export function LoginModule({
               {isMagicLink ? "Use password instead" : "Use magic link instead"}
             </Button>
 
-            {showHomeLink && (
+            {showBackButton && (
               <div className="text-center">
-                <Link
-                  href="/"
+                <button
+                  type="button"
+                  onClick={handleBack}
                   className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-4"
                 >
-                  Back to home
-                </Link>
+                  Back
+                </button>
               </div>
             )}
           </div>
