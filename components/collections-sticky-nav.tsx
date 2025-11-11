@@ -1,9 +1,10 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Edit, ArrowRight } from "lucide-react"
+import { ArrowLeft, Edit } from "lucide-react"
 import Link from "next/link"
 import { Author } from "@/components/author"
+import { useRouter } from "next/navigation"
 
 interface CollectionsStickyNavProps {
   title: string
@@ -40,6 +41,8 @@ export function CollectionsStickyNav({
   authorName,
   showBackButton = true,
 }: CollectionsStickyNavProps) {
+  const router = useRouter()
+
   const getNavUrl = (id: string) => {
     const baseUrl = `/${itemType}s/${id}`
     return mode ? `${baseUrl}?mode=${mode}` : baseUrl
@@ -57,36 +60,20 @@ export function CollectionsStickyNav({
 
   const displayLabel = truncateBackLabel(backLabel)
 
+  const handleBack = () => {
+    router.back()
+  }
+
   return (
     <div className="sticky top-3 lg:top-16 z-50 bg-background/90 border-b border rounded-lg">
       <div className="container max-w-7xl mx-auto lg:px-8 py-3 px-0 rounded-lg">
         <div className="flex items-center justify-between gap-4">
           {/* Left: Back button */}
           <div className="flex items-center gap-2 min-w-0">
-            {showBackButton ? (
-              <Button variant="ghost" size="sm" asChild className="gap-2 shrink-0">
-                <Link href={backHref}>
-                  <ArrowLeft className="h-4 w-4" />
-                  <span className="text-sm font-medium hidden sm:inline">{displayLabel}</span>
-                </Link>
-              </Button>
-            ) : (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild={!!previousItem}
-                disabled={!previousItem}
-                className={`shrink-0 ${!previousItem ? "opacity-30 pointer-events-none" : ""}`}
-              >
-                {previousItem ? (
-                  <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Link>
-                ) : (
-                  <span>
-                    <ArrowLeft className="h-5 w-5" />
-                  </span>
-                )}
+            {showBackButton && (
+              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2 shrink-0">
+                <ArrowLeft className="h-4 w-4" />
+                <span className="text-sm font-medium hidden sm:inline">Back</span>
               </Button>
             )}
           </div>
@@ -104,25 +91,6 @@ export function CollectionsStickyNav({
                 <Link href={editHref}>
                   <Edit className="h-4 w-4" />
                 </Link>
-              </Button>
-            )}
-            {!showBackButton && (
-              <Button
-                variant="ghost"
-                size="icon"
-                asChild={!!nextItem}
-                disabled={!nextItem}
-                className={`${!nextItem ? "opacity-30 pointer-events-none" : ""}`}
-              >
-                {nextItem ? (
-                  <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
-                    <ArrowRight className="h-5 w-5" />
-                  </Link>
-                ) : (
-                  <span>
-                    <ArrowRight className="h-5 w-5" />
-                  </span>
-                )}
               </Button>
             )}
           </div>
