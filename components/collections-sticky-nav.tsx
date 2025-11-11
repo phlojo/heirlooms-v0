@@ -81,11 +81,11 @@ export function CollectionsStickyNav({
 
           {/* Center-Left: Title and Author stacked, left-justified */}
           <div className="flex flex-col justify-center gap-0.5 flex-1 min-w-0 py-0.5">
-            <h1 className="font-bold tracking-tight text-left w-full leading-tight break-words line-clamp-2 text-2xl">
+            <h1 className="font-bold tracking-tight w-full leading-tight break-words line-clamp-2 text-2xl text-right">
               {title}
             </h1>
             {authorUserId && (
-              <div className="text-left">
+              <div className="text-right">
                 <Author userId={authorUserId} authorName={authorName} size="sm" />
               </div>
             )}
