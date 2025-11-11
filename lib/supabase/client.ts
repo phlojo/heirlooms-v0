@@ -35,6 +35,23 @@ export function createClient() {
       detectSessionInUrl: true,
       persistSession: true,
       storageKey: "sb-auth-token",
+      flowType: "pkce", // Explicitly set PKCE flow for OAuth
+    },
+    cookies: {
+      // Ensure cookies work across subdomains in preview environments
+      get(name: string) {
+        const cookies = document.cookie.split("; ")
+        const cookie = cookies.find((c) => c.startsWith(`${name}=`))
+        return cookie?.split("=")[1] || null
+      },
+      set(name: string, value: string, options: any) {
+        document.cookie = `${name}=${value}; path=${options.path || "/"}; max-age=${options.maxAge || 31536000}; ${
+          options.sameSite ? `SameSite=${options.sameSite}` : "SameSite=Lax"
+        }; ${window.location.protocol === "https:" ? "Secure" : ""}`
+      },
+      remove(name: string, options: any) {
+        document.cookie = `${name}=; path=${options.path || "/"}; max-age=0`
+      },
     },
     global: {
       headers: {
