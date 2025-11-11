@@ -66,7 +66,7 @@ export function ArtifactStickyNav({
               size="icon"
               asChild={!!previousItem}
               disabled={!previousItem}
-              className={`shrink-0 ${!previousItem ? "opacity-15 pointer-events-none" : ""}`}
+              className={`shrink-0 ${!previousItem ? "!opacity-15 pointer-events-none" : ""}`}
             >
               {previousItem ? (
                 <Link href={getNavUrl(previousItem.id)} title={previousItem.title}>
@@ -127,7 +127,7 @@ export function ArtifactStickyNav({
               size="icon"
               asChild={!!nextItem}
               disabled={!nextItem}
-              className={`${!nextItem ? "opacity-15 pointer-events-none" : ""}`}
+              className={`${!nextItem ? "!opacity-15 pointer-events-none" : ""}`}
             >
               {nextItem ? (
                 <Link href={getNavUrl(nextItem.id)} title={nextItem.title}>
