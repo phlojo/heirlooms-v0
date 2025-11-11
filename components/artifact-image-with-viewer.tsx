@@ -6,9 +6,10 @@ import { FullscreenImageViewer } from "./fullscreen-image-viewer"
 interface ArtifactImageWithViewerProps {
   src: string
   alt: string
+  onFullscreenChange?: (isFullscreen: boolean) => void
 }
 
-export function ArtifactImageWithViewer({ src, alt }: ArtifactImageWithViewerProps) {
+export function ArtifactImageWithViewer({ src, alt, onFullscreenChange }: ArtifactImageWithViewerProps) {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [scrollPosition, setScrollPosition] = useState(0)
   const imageRef = useRef<HTMLDivElement>(null)
@@ -22,6 +23,10 @@ export function ArtifactImageWithViewer({ src, alt }: ArtifactImageWithViewerPro
   const handleClose = () => {
     setIsFullscreen(false)
   }
+
+  useEffect(() => {
+    onFullscreenChange?.(isFullscreen)
+  }, [isFullscreen, onFullscreenChange])
 
   // Restore scroll position after closing fullscreen
   useEffect(() => {
