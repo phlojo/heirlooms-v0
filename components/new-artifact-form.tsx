@@ -131,7 +131,9 @@ export function NewArtifactForm({
 
       const newImages = [...uploadedImages, ...urls]
       setUploadedImages(newImages)
-      form.setValue("media_urls", newImages)
+      const allMediaUrls = audioUrl ? [...newImages, audioUrl] : newImages
+      form.setValue("media_urls", allMediaUrls)
+      console.log("[v0] Updated media_urls after image upload:", allMediaUrls)
     } catch (err) {
       console.error("[v0] Upload error:", err)
       setError(
@@ -149,7 +151,9 @@ export function NewArtifactForm({
   function removeImage(index: number) {
     const newImages = uploadedImages.filter((_, i) => i !== index)
     setUploadedImages(newImages)
-    form.setValue("media_urls", newImages)
+    const allMediaUrls = audioUrl ? [...newImages, audioUrl] : newImages
+    form.setValue("media_urls", allMediaUrls)
+    console.log("[v0] Updated media_urls after image removal:", allMediaUrls)
   }
 
   async function handleAudioRecorded(audioBlob: Blob, fileName: string) {
@@ -209,6 +213,7 @@ export function NewArtifactForm({
       setAudioUrl(data.secure_url)
       const newMediaUrls = [...uploadedImages, data.secure_url]
       form.setValue("media_urls", newMediaUrls)
+      console.log("[v0] Updated media_urls after audio upload:", newMediaUrls)
     } catch (err) {
       console.error("[v0] Audio upload error:", err)
       setError(err instanceof Error ? err.message : "Failed to upload audio. Please try again.")
@@ -220,10 +225,14 @@ export function NewArtifactForm({
   function removeAudio() {
     setAudioUrl(null)
     form.setValue("media_urls", uploadedImages)
+    console.log("[v0] Updated media_urls after audio removal:", uploadedImages)
   }
 
   async function onSubmit(data: FormData) {
-    console.log("[v0] Submitting artifact:", data)
+    console.log("[v0] Submitting artifact with data:", data)
+    console.log("[v0] Form media_urls:", data.media_urls)
+    console.log("[v0] State - uploadedImages:", uploadedImages)
+    console.log("[v0] State - audioUrl:", audioUrl)
     setError(null)
     const result = await createArtifact(data)
 
@@ -393,7 +402,7 @@ export function NewArtifactForm({
           {audioUrl && !isUploadingAudio && (
             <div className="space-y-2">
               <div className="flex items-center gap-2 rounded-lg border p-3">
-                <audio src={audioUrl} controls className="flex-1" />
+                <audio src={audioUrl} controls className="flex-1" crossOrigin="anonymous" />
                 <Button type="button" variant="ghost" size="icon" onClick={removeAudio}>
                   <X className="h-4 w-4" />
                 </Button>
