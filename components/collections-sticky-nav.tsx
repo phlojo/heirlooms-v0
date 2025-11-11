@@ -77,11 +77,11 @@ export function CollectionsStickyNav({
           )}
 
           {/* Divider */}
-          {showBackButton && <div className="w-px h-9 bg-border shrink-0" />}
+          {showBackButton && <div className="w-px bg-border shrink-0 h-12" />}
 
           {/* Center-Left: Title and Author stacked, left-justified */}
           <div className="flex flex-col justify-center gap-0.5 flex-1 min-w-0 py-0.5">
-            <h1 className="font-bold tracking-tight text-left w-full text-base leading-tight break-words line-clamp-2">
+            <h1 className="font-bold tracking-tight text-left w-full leading-tight break-words line-clamp-2 text-2xl">
               {title}
             </h1>
             {authorUserId && (
