@@ -1,6 +1,6 @@
 import Link from "next/link"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { ImageIcon } from "lucide-react"
+import { HeirloomsIcon } from "@/components/heirlooms-icon"
 import { Author } from "@/components/author"
 import { getThumbnailUrl } from "@/lib/cloudinary"
 
@@ -37,8 +37,8 @@ export function ArtifactCard({ artifact, showAuthor = false, authorName }: Artif
               className="h-full w-full object-cover transition-transform group-hover:scale-105"
             />
           ) : (
-            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
-              <ImageIcon className="h-8 w-8 text-muted-foreground/40" />
+            <div className="flex h-full w-full items-center justify-center bg-gray-300">
+              <HeirloomsIcon className="h-8 w-8 text-gray-600" />
             </div>
           )}
         </div>

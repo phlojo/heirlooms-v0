@@ -1,5 +1,5 @@
 import { getThumbnailUrl } from "@/lib/cloudinary"
-import { Package } from "lucide-react"
+import { HeirloomsIcon } from "@/components/heirlooms-icon"
 
 interface CollectionThumbnailGridProps {
   images: string[]
@@ -13,8 +13,8 @@ export function CollectionThumbnailGrid({ images, title }: CollectionThumbnailGr
   // If no images, show placeholder
   if (validImages.length === 0) {
     return (
-      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/5 to-primary/10">
-        <Package className="h-12 w-12 text-muted-foreground/40" />
+      <div className="flex h-full w-full items-center justify-center bg-gray-300">
+        <HeirloomsIcon className="h-12 w-12 text-gray-600" />
       </div>
     )
   }
