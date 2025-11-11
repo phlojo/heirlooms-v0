@@ -6,7 +6,7 @@ export default async function StoriesPage() {
 
   return (
     <AppLayout user={user}>
-      <div className="space-y-8">
+      <div className="space-y-0x">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-gradient-to-br from-primary to-chart-2 text-primary-foreground shadow-sm rounded-sm">
@@ -35,9 +35,8 @@ export default async function StoriesPage() {
                 <path d="M66.6001 43.3L66.6001 28.9L54.1001 21.6L54.1001 36.1L66.6001 43.3Z" fill="currentColor" />
               </svg>
             </div>
-            All Stories
+            Stories
           </h1>
-          <p className="mt-1 text-muted-foreground">Connect artifacts to meaningful narratives</p>
         </div>
 
         <div className="flex min-h-[calc(100vh-20rem)] items-center justify-center lg:min-h-[calc(100vh-16rem)]">

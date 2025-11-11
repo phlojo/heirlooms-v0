@@ -11,7 +11,7 @@ export default async function ArtifactsPage() {
 
   return (
     <AppLayout user={user}>
-      <div className="space-y-4">
+      <div className="space-y-0x.5xx.5.5">
         <div>
           <h1 className="flex items-center gap-3 text-3xl font-bold tracking-tight">
             <div className="flex h-10 w-10 shrink-0 items-center justify-center bg-gradient-to-br from-primary to-chart-2 text-primary-foreground shadow-sm rounded-sm">
@@ -40,11 +40,8 @@ export default async function ArtifactsPage() {
                 <path d="M66.6001 43.3L66.6001 28.9L54.1001 21.6L54.1001 36.1L66.6001 43.3Z" fill="currentColor" />
               </svg>
             </div>
-            All Artifacts
+            Artifacts
           </h1>
-          <p className="mt-1 text-muted-foreground">
-            Explore the things that matter—your artifacts and those treasured by others.
-          </p>
         </div>
 
         <ArtifactsTabs user={user} myArtifacts={myArtifacts} allArtifacts={allArtifacts} />

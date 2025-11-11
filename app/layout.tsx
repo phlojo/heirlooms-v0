@@ -5,6 +5,7 @@ import "./globals.css"
 
 import { Geist, Geist_Mono, Source_Serif_4 } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Analytics } from "@vercel/analytics/react"
 
 // Initialize fonts
 const _geist = Geist({ subsets: ["latin"], weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"] })
@@ -21,6 +22,14 @@ export const metadata: Metadata = {
   title: "Heirlooms - Preserve the things that matter to you",
   description: "Document your life's artifacts and stories with structure, context, and connection",
   generator: "v0.app",
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-32x32.jpg", sizes: "32x32", type: "image/png" },
+      { url: "/favicon-16x16.jpg", sizes: "16x16", type: "image/png" },
+    ],
+    apple: "/apple-touch-icon.jpg",
+  },
 }
 
 export default function RootLayout({
@@ -37,7 +46,10 @@ export default function RootLayout({
         />
       </head>
       <body className={`font-sans antialiased`}>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Analytics />
+        </ThemeProvider>
       </body>
     </html>
   )
