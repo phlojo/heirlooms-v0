@@ -56,7 +56,7 @@ export function CollectionsTabs({ user, myCollections, allCollections }: Collect
             </Link>
           </Button>
         ) : (
-          <Button asChild variant="default">
+          <Button asChild variant="default" className="hidden lg:flex">
             <Link href="/login">Sign In</Link>
           </Button>
         )}

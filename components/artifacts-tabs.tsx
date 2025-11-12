@@ -59,7 +59,7 @@ export function ArtifactsTabs({ user, myArtifacts, allArtifacts }: ArtifactsTabs
             </Link>
           </Button>
         ) : (
-          <Button asChild variant="default">
+          <Button asChild variant="default" className="hidden lg:flex">
             <Link href="/login">Sign In</Link>
           </Button>
         )}

@@ -2,6 +2,7 @@ import { AppLayout } from "@/components/app-layout"
 import { getCurrentUser } from "@/lib/supabase/server"
 import { HomeCard } from "@/components/home-card"
 import { createClient } from "@/lib/supabase/server"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export const dynamic = "force-dynamic"
 
@@ -60,6 +61,9 @@ export default async function HomePage() {
               </svg>
             </div>
             Heirlooms
+            <div className="ml-auto lg:hidden">
+              <ThemeToggle />
+            </div>
           </h1>
           <p className="text-muted-foreground text-base mt-6">
             Preserve what matters to you and discover artifacts and collections from the community.
