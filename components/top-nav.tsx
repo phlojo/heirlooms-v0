@@ -53,8 +53,17 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:flex">
-      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 lg:px-6">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 lg:hidden">
+        <Button variant="ghost" size="icon" onClick={onMenuClick}>
+          <Menu className="h-5 w-5" />
+          <span className="sr-only">Toggle menu</span>
+        </Button>
+
+        <ThemeToggle />
+      </div>
+
+      <div className="flex h-16 w-full items-center justify-between gap-4 px-4 lg:px-6 max-lg:hidden">
         <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
