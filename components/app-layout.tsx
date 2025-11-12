@@ -18,21 +18,25 @@ interface AppLayoutProps {
 export function AppLayout({ children, user, noBottomPadding = false }: AppLayoutProps) {
   const isMobile = useIsMobile()
   const [sidebarOpen, setSidebarOpen] = useState(() => {
-    if (typeof window === "undefined") return false
+    if (typeof window === "undefined") return true
     const stored = localStorage.getItem("sidebarOpen")
-    return stored !== null ? stored === "true" : false
+    return stored !== null ? stored === "true" : true
   })
 
   useEffect(() => {
-    const stored = localStorage.getItem("sidebarOpen")
-    if (stored === null) {
-      setSidebarOpen(!isMobile)
+    if (isMobile) {
+      setSidebarOpen(false)
+    } else {
+      const stored = localStorage.getItem("sidebarOpen")
+      setSidebarOpen(stored !== null ? stored === "true" : true)
     }
   }, [isMobile])
 
   const handleSidebarToggle = (open: boolean) => {
-    setSidebarOpen(open)
-    localStorage.setItem("sidebarOpen", String(open))
+    if (!isMobile) {
+      setSidebarOpen(open)
+      localStorage.setItem("sidebarOpen", String(open))
+    }
   }
 
   return (

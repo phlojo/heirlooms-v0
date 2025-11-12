@@ -55,7 +55,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 hidden lg:flex">
       <div className="flex h-16 w-full items-center justify-between gap-4 px-4 lg:px-6">
-        <Button variant="ghost" size="icon" className="lg:hidden" onClick={onMenuClick}>
+        <Button variant="ghost" size="icon" className="hidden lg:flex" onClick={onMenuClick}>
           <Menu className="h-5 w-5" />
           <span className="sr-only">Toggle menu</span>
         </Button>
