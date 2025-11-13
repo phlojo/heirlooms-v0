@@ -13,8 +13,9 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { useState } from "react"
-import { X, Upload, ImageIcon } from "lucide-react"
+import { X, Upload, ImageIcon, ChevronDown } from "lucide-react"
 import { AudioRecorder } from "@/components/audio-recorder"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 
 type FormData = z.infer<typeof createArtifactSchema>
 
@@ -30,6 +31,7 @@ export function NewArtifactForm({
   const [isUploading, setIsUploading] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isUploadingAudio, setIsUploadingAudio] = useState(false)
+  const [isOptionalDetailsOpen, setIsOptionalDetailsOpen] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(createArtifactSchema),
@@ -314,46 +316,59 @@ export function NewArtifactForm({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="year_acquired"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Year Acquired (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g., 1950"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                  value={field.value ?? ""}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Collapsible open={isOptionalDetailsOpen} onOpenChange={setIsOptionalDetailsOpen}>
+          <CollapsibleTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex w-full items-center justify-between px-0 hover:bg-transparent"
+            >
+              <span className="text-sm font-medium">Optional Details</span>
+              <ChevronDown className={`h-4 w-4 transition-transform ${isOptionalDetailsOpen ? "rotate-180" : ""}`} />
+            </Button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-6 pt-6">
+            <FormField
+              control={form.control}
+              name="year_acquired"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year Acquired</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 1950"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        <FormField
-          control={form.control}
-          name="origin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Origin (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Paris, France" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Origin</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Paris, France" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
         <input type="hidden" {...form.register("collectionId")} value={collectionId || ""} />
 
         <div className="space-y-3">
           <FormLabel>Photos</FormLabel>
 
-          {/* Upload button */}
           <div className="flex items-center gap-3">
             <Button type="button" variant="outline" disabled={isUploading} asChild>
               <label className="cursor-pointer">
@@ -372,7 +387,6 @@ export function NewArtifactForm({
             <FormDescription className="!mt-0">Upload photos (max 15MB per file, 30MB total)</FormDescription>
           </div>
 
-          {/* Image previews */}
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {uploadedImages.map((url, index) => (
@@ -394,7 +408,6 @@ export function NewArtifactForm({
             </div>
           )}
 
-          {/* Empty state */}
           {uploadedImages.length === 0 && !isUploading && (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
               <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
@@ -403,7 +416,6 @@ export function NewArtifactForm({
           )}
         </div>
 
-        {/* Audio recording section */}
         <div className="space-y-3">
           <FormLabel>Audio Recording (Optional)</FormLabel>
           <FormDescription>Record audio to accompany this artifact</FormDescription>
