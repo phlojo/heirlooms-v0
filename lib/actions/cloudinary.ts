@@ -179,6 +179,7 @@ export async function generateCloudinaryTranscriptionSignature(
   userId: string,
   fileName: string,
   fieldType: "title" | "description",
+  entityType: "artifact" | "collection" = "artifact",
 ) {
   const cloudName = process.env.CLOUDINARY_CLOUD_NAME
   const apiKey = process.env.CLOUDINARY_API_KEY
@@ -203,8 +204,8 @@ export async function generateCloudinaryTranscriptionSignature(
     const now = new Date()
     const yyyy = now.getUTCFullYear()
     const mm = String(now.getUTCMonth() + 1).padStart(2, "0")
-    // Store transcription audio in a separate folder: users/{userId}/transcriptions/{fieldType}/{yyyy}/{mm}/{fileName}
-    const publicId = `users/${safeUser}/transcriptions/${fieldType}/${yyyy}/${mm}/${baseName}`
+    // Store transcription audio: users/{userId}/transcriptions/{entityType}/{fieldType}/{yyyy}/{mm}/{fileName}
+    const publicId = `users/${safeUser}/transcriptions/${entityType}/${fieldType}/${yyyy}/${mm}/${baseName}`
 
     // Use Node crypto for server-side signature generation
     const crypto = await import("node:crypto")

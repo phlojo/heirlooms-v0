@@ -5,8 +5,6 @@ import { useRouter } from "next/navigation"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -14,19 +12,32 @@ import { AlertCircle, Loader2, CheckCircle2 } from "lucide-react"
 import { createCollection } from "@/lib/actions/collections"
 import { collectionSchema, type CollectionInput } from "@/lib/schemas"
 import Link from "next/link"
+import { TranscriptionInput } from "@/components/transcription-input"
+import { useSupabase } from "@/lib/supabase/browser-context"
 
 export function NewCollectionForm() {
   const router = useRouter()
+  const supabase = useSupabase()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successData, setSuccessData] = useState<{ id: string; title: string } | null>(null)
+  const [userId, setUserId] = useState<string>("")
+
+  // Get user ID for transcription audio storage
+  useState(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setUserId(data.user.id)
+      }
+    })
+  })
 
   const form = useForm<CollectionInput>({
     resolver: zodResolver(collectionSchema),
     defaultValues: {
       title: "",
       description: "",
-      is_public: true, // Updated default value for is_public
+      is_public: true,
     },
   })
 
@@ -90,7 +101,15 @@ export function NewCollectionForm() {
 
       <div className="space-y-2">
         <Label htmlFor="title">Title</Label>
-        <Input id="title" placeholder="Family Jewelry" {...form.register("title")} />
+        <TranscriptionInput
+          value={form.watch("title")}
+          onChange={(value) => form.setValue("title", value)}
+          placeholder="Family Jewelry"
+          type="input"
+          fieldType="title"
+          userId={userId}
+          entityType="collection"
+        />
         {form.formState.errors.title && (
           <p className="text-sm text-destructive">{form.formState.errors.title.message}</p>
         )}
@@ -98,11 +117,15 @@ export function NewCollectionForm() {
 
       <div className="space-y-2">
         <Label htmlFor="description">Description</Label>
-        <Textarea
-          id="description"
+        <TranscriptionInput
+          value={form.watch("description") || ""}
+          onChange={(value) => form.setValue("description", value)}
           placeholder="A collection of precious jewelry passed down through generations..."
-          className="min-h-[100px]"
-          {...form.register("description")}
+          type="textarea"
+          fieldType="description"
+          userId={userId}
+          entityType="collection"
+          rows={4}
         />
         {form.formState.errors.description && (
           <p className="text-sm text-destructive">{form.formState.errors.description.message}</p>

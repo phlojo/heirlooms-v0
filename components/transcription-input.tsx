@@ -16,6 +16,7 @@ interface TranscriptionInputProps {
   userId: string
   disabled?: boolean
   rows?: number
+  entityType?: "artifact" | "collection"
 }
 
 export function TranscriptionInput({
@@ -27,6 +28,7 @@ export function TranscriptionInput({
   userId,
   disabled = false,
   rows = 4,
+  entityType = "artifact",
 }: TranscriptionInputProps) {
   const [isRecording, setIsRecording] = useState(false)
   const [isTranscribing, setIsTranscribing] = useState(false)
@@ -172,7 +174,7 @@ export function TranscriptionInput({
       onChange(transcription)
 
       const fileName = `${fieldType}-${Date.now()}.webm`
-      const signatureResult = await generateCloudinaryTranscriptionSignature(userId, fileName, fieldType)
+      const signatureResult = await generateCloudinaryTranscriptionSignature(userId, fileName, fieldType, entityType)
 
       if (signatureResult.error || !signatureResult.signature) {
         console.error("[v0] Cloudinary signature error:", signatureResult.error)
