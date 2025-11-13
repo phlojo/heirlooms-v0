@@ -238,6 +238,9 @@ export function NewArtifactForm({
   }
 
   async function onSubmit(data: FormData) {
+    console.log("[v0] === FORM SUBMISSION STARTED ===")
+    console.log("[v0] Raw form data:", data)
+
     const uniqueMediaUrls = Array.from(new Set(data.media_urls || []))
 
     if (uniqueMediaUrls.length !== (data.media_urls?.length || 0)) {
@@ -262,23 +265,34 @@ export function NewArtifactForm({
     console.log("[v0] Form media_urls:", submitData.media_urls)
     console.log("[v0] State - uploadedImages:", uploadedImages)
     console.log("[v0] State - audioUrl:", audioUrl)
-    setError(null)
-    const result = await createArtifact(submitData)
 
-    if (result?.error) {
-      console.log("[v0] Artifact creation error:", result)
-      if (result.fieldErrors) {
-        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-          if (messages && messages.length > 0) {
-            form.setError(field as keyof FormData, {
-              type: "server",
-              message: messages[0],
-            })
-          }
-        })
+    setError(null)
+
+    try {
+      console.log("[v0] Calling createArtifact action...")
+      const result = await createArtifact(submitData)
+      console.log("[v0] createArtifact result:", result)
+
+      if (result?.error) {
+        console.log("[v0] Artifact creation error:", result)
+        if (result.fieldErrors) {
+          Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+            if (messages && messages.length > 0) {
+              form.setError(field as keyof FormData, {
+                type: "server",
+                message: messages[0],
+              })
+            }
+          })
+        } else {
+          setError(result.error)
+        }
       } else {
-        setError(result.error)
+        console.log("[v0] Artifact created successfully, should redirect now")
       }
+    } catch (error) {
+      console.error("[v0] Exception during artifact creation:", error)
+      setError(error instanceof Error ? error.message : "An unexpected error occurred")
     }
   }
 
