@@ -6,7 +6,7 @@ import { Author } from "@/components/author"
 import { CollectionThumbnailGrid } from "@/components/collection-thumbnail-grid"
 import { Badge } from "@/components/ui/badge"
 import { Settings } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface UncategorizedCollectionCardProps {
   collection: {
@@ -29,6 +29,17 @@ export function UncategorizedCollectionCard({ collection, mode }: UncategorizedC
   const baseHref = collection.slug ? `/collections/${collection.slug}` : `/collections/${collection.id}`
   const href = mode ? `${baseHref}?mode=${mode}` : baseHref
   const [tooltipOpen, setTooltipOpen] = useState(false)
+
+  useEffect(() => {
+    if (!tooltipOpen) return
+
+    const handleScroll = () => {
+      setTooltipOpen(false)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [tooltipOpen])
 
   return (
     <Card className="group overflow-hidden border transition-all hover:shadow-lg p-0 relative">
@@ -58,42 +69,38 @@ export function UncategorizedCollectionCard({ collection, mode }: UncategorizedC
             </div>
           )}
         </div>
+
+        <CardHeader className="pb-0">
+          <h3 className="font-semibold leading-tight text-2xl pb-2 pt-2">{collection.title}</h3>
+        </CardHeader>
+
+        <CardContent className="pt-0 pb-4 space-y-4 -mt-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-muted-foreground">
+              {collection.itemCount} {collection.itemCount === 1 ? "artifact" : "artifacts"}
+            </p>
+            <Author userId={collection.user_id} authorName={collection.authorName || undefined} size="sm" />
+          </div>
+        </CardContent>
       </Link>
 
-      <CardHeader className="pb-0">
-        <Link href={href} className="block">
-          <h3 className="font-semibold leading-tight text-2xl pb-2 pt-2">{collection.title}</h3>
-        </Link>
-
-        <div className="flex items-center gap-2 flex-wrap pb-2 relative">
-          {collection.is_public === false && <Badge variant="purple">Private</Badge>}
-          {collection.isUnsorted && (
-            <Badge
-              variant="blue"
-              className="cursor-pointer"
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                setTooltipOpen(!tooltipOpen)
-              }}
-              onPointerDown={(e) => {
-                e.stopPropagation()
-              }}
-            >
+      <div className="absolute top-[calc(50%-1.5rem)] left-4 flex items-center gap-2 flex-wrap z-20">
+        {collection.is_public === false && <Badge variant="purple">Private</Badge>}
+        {collection.isUnsorted && (
+          <button
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setTooltipOpen(!tooltipOpen)
+            }}
+            className="inline-flex"
+          >
+            <Badge variant="blue" className="cursor-pointer">
               <Settings className="h-3 w-3" />
             </Badge>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="pt-0 pb-4 space-y-4 -mt-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            {collection.itemCount} {collection.itemCount === 1 ? "artifact" : "artifacts"}
-          </p>
-          <Author userId={collection.user_id} authorName={collection.authorName || undefined} size="sm" />
-        </div>
-      </CardContent>
+          </button>
+        )}
+      </div>
     </Card>
   )
 }
