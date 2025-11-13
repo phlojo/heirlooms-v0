@@ -76,16 +76,12 @@ export function NewArtifactForm({
 
       // Upload files one at a time to avoid overwhelming the server
       for (const file of Array.from(files)) {
-        console.log("[v0] Uploading file:", file.name, "Size:", file.size)
-
-        // Get signature from server
         const signatureResult = await generateCloudinarySignature(userId, file.name)
 
         if (signatureResult.error || !signatureResult.signature) {
           throw new Error(signatureResult.error || "Failed to generate upload signature")
         }
 
-        // Upload directly to Cloudinary from client
         const formData = new FormData()
         formData.append("file", file)
         formData.append("api_key", signatureResult.apiKey!)
@@ -100,9 +96,6 @@ export function NewArtifactForm({
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/image/upload`
 
-        console.log("[v0] Uploading to Cloudinary:", uploadUrl)
-        console.log("[v0] Public ID:", signatureResult.publicId)
-
         const response = await fetch(uploadUrl, {
           method: "POST",
           body: formData,
@@ -110,11 +103,6 @@ export function NewArtifactForm({
 
         if (!response.ok) {
           const errorText = await response.text()
-          console.error("[v0] Cloudinary upload failed:", {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorText,
-          })
 
           let errorData
           try {
@@ -127,24 +115,19 @@ export function NewArtifactForm({
         }
 
         const data = await response.json()
-        console.log("[v0] Successfully uploaded to Cloudinary:", data.secure_url)
         urls.push(data.secure_url)
       }
 
       setUploadedImages((prevImages) => {
         const newImages = [...prevImages, ...urls]
         const uniqueImages = Array.from(new Set(newImages))
-        console.log("[v0] Total images before dedup:", newImages.length, "After dedup:", uniqueImages.length)
-        console.log("[v0] Previous images:", prevImages.length, "New URLs:", urls.length, "Final:", uniqueImages.length)
 
         const allMediaUrls = audioUrl ? [...uniqueImages, audioUrl] : uniqueImages
         form.setValue("media_urls", allMediaUrls)
-        console.log("[v0] Updated media_urls after image upload:", allMediaUrls)
 
         return uniqueImages
       })
     } catch (err) {
-      console.error("[v0] Upload error:", err)
       setError(
         err instanceof Error
           ? err.message
@@ -162,7 +145,6 @@ export function NewArtifactForm({
     setUploadedImages(newImages)
     const allMediaUrls = audioUrl ? [...newImages, audioUrl] : newImages
     form.setValue("media_urls", allMediaUrls)
-    console.log("[v0] Updated media_urls after image removal:", allMediaUrls)
   }
 
   async function handleAudioRecorded(audioBlob: Blob, fileName: string) {
@@ -170,8 +152,6 @@ export function NewArtifactForm({
     setError(null)
 
     try {
-      console.log("[v0] Uploading audio:", fileName, "Size:", audioBlob.size)
-
       const signatureResult = await generateCloudinaryAudioSignature(userId, fileName)
 
       if (signatureResult.error || !signatureResult.signature) {
@@ -187,12 +167,6 @@ export function NewArtifactForm({
 
       const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`
 
-      console.log("[v0] Uploading audio to Cloudinary:", uploadUrl)
-      console.log("[v0] Upload params:", {
-        publicId: signatureResult.publicId,
-        timestamp: signatureResult.timestamp,
-      })
-
       const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
@@ -200,11 +174,6 @@ export function NewArtifactForm({
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("[v0] Cloudinary audio upload failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        })
 
         let errorData
         try {
@@ -217,14 +186,11 @@ export function NewArtifactForm({
       }
 
       const data = await response.json()
-      console.log("[v0] Successfully uploaded audio to Cloudinary:", data.secure_url)
 
       setAudioUrl(data.secure_url)
       const newMediaUrls = [...uploadedImages, data.secure_url]
       form.setValue("media_urls", newMediaUrls)
-      console.log("[v0] Updated media_urls after audio upload:", newMediaUrls)
     } catch (err) {
-      console.error("[v0] Audio upload error:", err)
       setError(err instanceof Error ? err.message : "Failed to upload audio. Please try again.")
     } finally {
       setIsUploadingAudio(false)
@@ -234,25 +200,12 @@ export function NewArtifactForm({
   function removeAudio() {
     setAudioUrl(null)
     form.setValue("media_urls", uploadedImages)
-    console.log("[v0] Updated media_urls after audio removal:", uploadedImages)
   }
 
   async function onSubmit(data: FormData) {
-    console.log("[v0] === FORM SUBMISSION STARTED ===")
-    console.log("[v0] Raw form data:", data)
-
     const uniqueMediaUrls = Array.from(new Set(data.media_urls || []))
 
     if (uniqueMediaUrls.length !== (data.media_urls?.length || 0)) {
-      console.log(
-        "[v0] WARNING: Duplicate URLs detected at submission time!",
-        "Original:",
-        data.media_urls?.length,
-        "Unique:",
-        uniqueMediaUrls.length,
-        "URLs:",
-        data.media_urls,
-      )
       data.media_urls = uniqueMediaUrls
     }
 
@@ -260,22 +213,13 @@ export function NewArtifactForm({
       ...data,
     }
 
-    console.log("[v0] Submitting artifact with data:", submitData)
-    console.log("[v0] Form media_urls:", submitData.media_urls)
-    console.log("[v0] State - uploadedImages:", uploadedImages)
-    console.log("[v0] State - audioUrl:", audioUrl)
-
     setError(null)
 
     try {
-      console.log("[v0] Calling createArtifact action...")
       const result = await createArtifact(submitData)
-      console.log("[v0] createArtifact result:", result)
 
       if (result?.error) {
-        console.log("[v0] Artifact creation error:", result)
         if (result.fieldErrors) {
-          console.log("[v0] Field validation errors:", result.fieldErrors)
           // Set form field errors
           Object.entries(result.fieldErrors).forEach(([field, messages]) => {
             if (messages && Array.isArray(messages) && messages.length > 0) {
@@ -293,11 +237,11 @@ export function NewArtifactForm({
         } else {
           setError(result.error)
         }
-      } else {
-        console.log("[v0] Artifact created successfully, should redirect now")
       }
     } catch (error) {
-      console.error("[v0] Exception during artifact creation:", error)
+      if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+        return
+      }
       setError(error instanceof Error ? error.message : "An unexpected error occurred")
     }
   }

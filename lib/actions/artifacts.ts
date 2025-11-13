@@ -15,21 +15,15 @@ import { deleteCloudinaryMedia, extractPublicIdFromUrl } from "./cloudinary"
  * Server action to create a new artifact
  */
 export async function createArtifact(input: CreateArtifactInput) {
-  console.log("[v0] === SERVER ACTION: createArtifact START ===")
-  console.log("[v0] Input received:", input)
-
   // Validate input with Zod
   const validatedFields = createArtifactSchema.safeParse(input)
 
   if (!validatedFields.success) {
-    console.log("[v0] Validation failed:", validatedFields.error)
     return {
       error: "Invalid input",
       fieldErrors: validatedFields.error.flatten().fieldErrors,
     }
   }
-
-  console.log("[v0] Validation passed, validated data:", validatedFields.data)
 
   const supabase = await createClient()
 
@@ -38,26 +32,11 @@ export async function createArtifact(input: CreateArtifactInput) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  console.log("[v0] User authenticated:", user?.id)
-
   if (!user) {
-    console.log("[v0] No user found, returning unauthorized")
     return { error: "Unauthorized" }
   }
 
   const uniqueMediaUrls = Array.from(new Set(validatedFields.data.media_urls || []))
-
-  if (uniqueMediaUrls.length !== (validatedFields.data.media_urls?.length || 0)) {
-    console.log(
-      "[v0] Duplicate media URLs detected before database insert:",
-      "Original count:",
-      validatedFields.data.media_urls?.length,
-      "Unique count:",
-      uniqueMediaUrls.length,
-      "URLs:",
-      validatedFields.data.media_urls,
-    )
-  }
 
   const insertData = {
     title: validatedFields.data.title,
@@ -69,20 +48,13 @@ export async function createArtifact(input: CreateArtifactInput) {
     user_id: user.id,
   }
 
-  console.log("[v0] Inserting into database:", insertData)
-
   // Insert artifact into database
   const { data, error } = await supabase.from("artifacts").insert(insertData).select().single()
 
-  console.log("[v0] Database insert result - data:", data, "error:", error)
-
   if (error) {
-    console.error("[v0] Artifact creation error:", error)
+    console.error("Artifact creation error:", error)
     return { error: "Failed to create artifact. Please try again." }
   }
-
-  console.log("[v0] Artifact created successfully with ID:", data.id)
-  console.log("[v0] Revalidating paths...")
 
   revalidatePath("/artifacts")
   revalidatePath("/collections")
@@ -228,8 +200,6 @@ export async function getAllPublicArtifacts(excludeUserId?: string) {
 export async function getMyArtifacts(userId: string) {
   const supabase = await createClient()
 
-  console.log("[v0] getMyArtifacts - Fetching artifacts for user:", userId)
-
   const { data, error } = await supabase
     .from("artifacts")
     .select(`
@@ -239,14 +209,8 @@ export async function getMyArtifacts(userId: string) {
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
-  console.log("[v0] getMyArtifacts - Found artifacts:", data?.length, "Error:", error)
-  console.log(
-    "[v0] getMyArtifacts - Artifacts with null collection_id:",
-    data?.filter((a) => a.collection_id === null).length,
-  )
-
   if (error) {
-    console.error("[v0] Error fetching my artifacts:", error)
+    console.error("Error fetching my artifacts:", error)
     return []
   }
 
@@ -260,22 +224,16 @@ export async function getMyArtifacts(userId: string) {
  * Server action to update an existing artifact
  */
 export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: string[] = []) {
-  console.log("[v0] === SERVER ACTION: updateArtifact START ===")
-  console.log("[v0] Input received:", input)
-
   // Validate input with Zod
   const validatedFields = updateArtifactSchema.safeParse(input)
 
   if (!validatedFields.success) {
-    console.log("[v0] Validation failed:", validatedFields.error)
     return {
       success: false,
       error: "Invalid input",
       fieldErrors: validatedFields.error.flatten().fieldErrors,
     }
   }
-
-  console.log("[v0] Validation passed, validated data:", validatedFields.data)
 
   const supabase = await createClient()
 
@@ -284,10 +242,7 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     data: { user },
   } = await supabase.auth.getUser()
 
-  console.log("[v0] User authenticated:", user?.id)
-
   if (!user) {
-    console.log("[v0] No user found, returning unauthorized")
     return { success: false, error: "Unauthorized" }
   }
 
@@ -299,11 +254,8 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     .single()
 
   if (!existingArtifact || existingArtifact.user_id !== user.id) {
-    console.log("[v0] Unauthorized access attempt, returning unauthorized")
     return { success: false, error: "Unauthorized" }
   }
-
-  console.log("[v0] Ownership verified, existing artifact:", existingArtifact)
 
   // Delete removed images from Cloudinary
   const newMediaUrls = validatedFields.data.media_urls || []
@@ -319,18 +271,6 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
   // Deduplicate media_urls before updating in database
   const uniqueMediaUrls = Array.from(new Set(newMediaUrls))
 
-  if (uniqueMediaUrls.length !== newMediaUrls.length) {
-    console.log(
-      "[v0] Duplicate media URLs detected before database update:",
-      "Original count:",
-      newMediaUrls.length,
-      "Unique count:",
-      uniqueMediaUrls.length,
-      "URLs:",
-      newMediaUrls,
-    )
-  }
-
   const updateData = {
     title: validatedFields.data.title,
     description: validatedFields.data.description,
@@ -340,8 +280,6 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     updated_at: new Date().toISOString(),
   }
 
-  console.log("[v0] Updating in database:", updateData)
-
   // Update artifact in database
   const { data, error } = await supabase
     .from("artifacts")
@@ -350,15 +288,10 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     .select()
     .single()
 
-  console.log("[v0] Database update result - data:", data, "error:", error)
-
   if (error) {
-    console.error("[v0] Artifact update error:", error)
+    console.error("Artifact update error:", error)
     return { success: false, error: "Failed to update artifact. Please try again." }
   }
-
-  console.log("[v0] Artifact updated successfully with ID:", data.id)
-  console.log("[v0] Revalidating paths...")
 
   revalidatePath(`/artifacts/${data.id}`)
   revalidatePath("/collections")
@@ -368,6 +301,5 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     revalidatePath(`/collections/${existingArtifact.collection_id}`)
   }
 
-  console.log("[v0] Paths revalidated, returning success with data:", data)
   return { success: true, data }
 }
