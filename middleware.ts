@@ -13,6 +13,7 @@ export async function middleware(request: NextRequest) {
     "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vercel.live https://*.vercel-scripts.com", // Next dev/previews may need 'unsafe-eval'
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "connect-src 'self' https://*.supabase.co https://res.cloudinary.com https://api.cloudinary.com https://*.cloudinary.com https://*.vercel.app",
+    "frame-src 'self' https://vercel.live",
     "frame-ancestors 'none'",
     "object-src 'none'",
   ].join("; ")
