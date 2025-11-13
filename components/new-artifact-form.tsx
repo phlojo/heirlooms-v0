@@ -250,13 +250,12 @@ export function NewArtifactForm({
         "URLs:",
         data.media_urls,
       )
-      // Update the form data with deduplicated array
       data.media_urls = uniqueMediaUrls
     }
 
     const submitData = {
       ...data,
-      collectionId: data.collectionId === "uncategorized" ? null : data.collectionId,
+      collectionId: data.collectionId && data.collectionId !== "uncategorized" ? data.collectionId : null,
     }
 
     console.log("[v0] Submitting artifact with data:", submitData)
@@ -269,7 +268,6 @@ export function NewArtifactForm({
     if (result?.error) {
       console.log("[v0] Artifact creation error:", result)
       if (result.fieldErrors) {
-        // Set field-specific errors
         Object.entries(result.fieldErrors).forEach(([field, messages]) => {
           if (messages && messages.length > 0) {
             form.setError(field as keyof FormData, {
@@ -279,7 +277,6 @@ export function NewArtifactForm({
           }
         })
       } else {
-        // Set general error if no field-specific errors
         setError(result.error)
       }
     }

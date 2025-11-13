@@ -32,10 +32,16 @@ export function TranscriptionInput({
   const [isTranscribing, setIsTranscribing] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const recordingTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const silenceTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const analyserRef = useRef<AnalyserNode | null>(null)
+  const streamRef = useRef<MediaStream | null>(null)
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      streamRef.current = stream
 
       const options = { mimeType: "audio/webm;codecs=opus" }
       let mediaRecorder: MediaRecorder
@@ -43,7 +49,6 @@ export function TranscriptionInput({
       try {
         mediaRecorder = new MediaRecorder(stream, options)
       } catch (e) {
-        // Fallback to default if opus codec not supported
         console.log("[v0] Opus codec not supported, using default")
         mediaRecorder = new MediaRecorder(stream)
       }
@@ -62,13 +67,60 @@ export function TranscriptionInput({
         console.log("[v0] Recording stopped, blob size:", audioBlob.size)
         await handleTranscription(audioBlob)
 
-        // Stop all tracks to release microphone
+        // Stop all tracks and clean up
         stream.getTracks().forEach((track) => track.stop())
+        if (audioContextRef.current) {
+          audioContextRef.current.close()
+          audioContextRef.current = null
+        }
       }
 
       mediaRecorder.start()
       setIsRecording(true)
       console.log("[v0] Recording started")
+
+      const audioContext = new AudioContext()
+      audioContextRef.current = audioContext
+      const analyser = audioContext.createAnalyser()
+      analyserRef.current = analyser
+      const microphone = audioContext.createMediaStreamSource(stream)
+      microphone.connect(analyser)
+      analyser.fftSize = 512
+      const bufferLength = analyser.frequencyBinCount
+      const dataArray = new Uint8Array(bufferLength)
+
+      const maxRecordingTime = fieldType === "title" ? 120000 : 300000
+      recordingTimeoutRef.current = setTimeout(() => {
+        console.log("[v0] Max recording time reached, stopping")
+        stopRecording()
+      }, maxRecordingTime)
+
+      let silentFrames = 0
+      const checkAudioLevel = () => {
+        if (!isRecording || !analyserRef.current) return
+
+        analyser.getByteFrequencyData(dataArray)
+        const average = dataArray.reduce((a, b) => a + b) / bufferLength
+
+        // Consider it silent if average is below 10
+        if (average < 10) {
+          silentFrames++
+          // Stop after 3 seconds of silence
+          if (silentFrames > 60) {
+            // ~3 seconds at 50ms intervals
+            console.log("[v0] Silence detected for 3 seconds, stopping recording")
+            stopRecording()
+            return
+          }
+        } else {
+          silentFrames = 0
+        }
+
+        // Check again in 50ms
+        silenceTimeoutRef.current = setTimeout(checkAudioLevel, 50)
+      }
+
+      checkAudioLevel()
     } catch (error) {
       console.error("[v0] Error starting recording:", error)
       alert("Failed to access microphone. Please check your browser permissions.")
@@ -76,6 +128,15 @@ export function TranscriptionInput({
   }
 
   const stopRecording = () => {
+    if (recordingTimeoutRef.current) {
+      clearTimeout(recordingTimeoutRef.current)
+      recordingTimeoutRef.current = null
+    }
+    if (silenceTimeoutRef.current) {
+      clearTimeout(silenceTimeoutRef.current)
+      silenceTimeoutRef.current = null
+    }
+
     if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
       mediaRecorderRef.current.stop()
       setIsRecording(false)
@@ -89,7 +150,6 @@ export function TranscriptionInput({
     try {
       console.log("[v0] Starting transcription process")
 
-      // First, transcribe the audio
       const transcriptionFormData = new FormData()
       transcriptionFormData.append("audio", audioBlob, "audio.webm")
       transcriptionFormData.append("fieldType", fieldType)
@@ -111,13 +171,11 @@ export function TranscriptionInput({
       console.log("[v0] Transcription successful:", transcription)
       onChange(transcription)
 
-      // Then, upload to Cloudinary for storage
       const fileName = `${fieldType}-${Date.now()}.webm`
       const signatureResult = await generateCloudinaryTranscriptionSignature(userId, fileName, fieldType)
 
       if (signatureResult.error || !signatureResult.signature) {
         console.error("[v0] Cloudinary signature error:", signatureResult.error)
-        // Don't throw - transcription worked, just log the storage failure
         console.warn("[v0] Failed to upload audio to Cloudinary, but transcription succeeded")
         return
       }
@@ -160,11 +218,22 @@ export function TranscriptionInput({
     }
   }
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
+      if (recordingTimeoutRef.current) {
+        clearTimeout(recordingTimeoutRef.current)
+      }
+      if (silenceTimeoutRef.current) {
+        clearTimeout(silenceTimeoutRef.current)
+      }
       if (mediaRecorderRef.current && mediaRecorderRef.current.state === "recording") {
         mediaRecorderRef.current.stop()
+      }
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop())
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close()
       }
     }
   }, [])
