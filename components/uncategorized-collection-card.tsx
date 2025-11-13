@@ -7,6 +7,7 @@ import { CollectionThumbnailGrid } from "@/components/collection-thumbnail-grid"
 import { Badge } from "@/components/ui/badge"
 import { Settings } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { useState } from "react"
 
 interface UncategorizedCollectionCardProps {
   collection: {
@@ -28,6 +29,7 @@ interface UncategorizedCollectionCardProps {
 export function UncategorizedCollectionCard({ collection, mode }: UncategorizedCollectionCardProps) {
   const baseHref = collection.slug ? `/collections/${collection.slug}` : `/collections/${collection.id}`
   const href = mode ? `${baseHref}?mode=${mode}` : baseHref
+  const [tooltipOpen, setTooltipOpen] = useState(false)
 
   return (
     <Card className="group overflow-hidden border transition-all hover:shadow-lg p-0">
@@ -57,14 +59,25 @@ export function UncategorizedCollectionCard({ collection, mode }: UncategorizedC
         <div className="flex items-center gap-2 flex-wrap pb-2">
           {collection.is_public === false && <Badge variant="purple">Private</Badge>}
           {collection.isUnsorted && (
-            <TooltipProvider delayDuration={200}>
-              <Tooltip>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip open={tooltipOpen} onOpenChange={setTooltipOpen}>
                 <TooltipTrigger asChild>
-                  <Badge variant="blue" className="px-1.5 cursor-help">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      setTooltipOpen(!tooltipOpen)
+                    }}
+                    onPointerDown={(e) => {
+                      e.stopPropagation()
+                    }}
+                    className="inline-flex items-center rounded-full border border-transparent bg-blue-500 px-1.5 py-0.5 text-xs font-semibold text-white transition-colors hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 cursor-pointer"
+                  >
                     <Settings className="h-4 w-4" />
-                  </Badge>
+                  </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
+                <TooltipContent side="top" className="max-w-xs">
                   <p>
                     This collection holds your uncategorized artifacts — items you&apos;ve created without assigning a
                     collection, or ones that remained after a collection was deleted.
