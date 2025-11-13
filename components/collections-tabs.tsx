@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
 import { CollectionCard } from "@/components/collection-card"
+import { UncategorizedCollectionCard } from "@/components/uncategorized-collection-card"
 import { EmptyCollections } from "@/components/empty-collections"
 import { LoginModule } from "@/components/login-module"
 import { useEffect, useState } from "react"
@@ -17,6 +18,7 @@ interface Collection {
   slug: string
   thumbnailImages: string[]
   itemCount: number
+  isUnsorted?: boolean
 }
 
 interface CollectionsTabsProps {
@@ -85,9 +87,13 @@ export function CollectionsTabs({ user, myCollections, allCollections }: Collect
           </div>
         ) : myCollections.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {myCollections.map((collection) => (
-              <CollectionCard key={collection.id} collection={collection} mode="mine" />
-            ))}
+            {myCollections.map((collection) =>
+              collection.isUnsorted ? (
+                <UncategorizedCollectionCard key={collection.id} collection={collection} mode="mine" />
+              ) : (
+                <CollectionCard key={collection.id} collection={collection} mode="mine" />
+              ),
+            )}
           </div>
         ) : (
           <EmptyCollections />
