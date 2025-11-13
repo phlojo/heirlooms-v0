@@ -258,7 +258,6 @@ export function NewArtifactForm({
 
     const submitData = {
       ...data,
-      collectionId: data.collectionId && data.collectionId !== "uncategorized" ? data.collectionId : null,
     }
 
     console.log("[v0] Submitting artifact with data:", submitData)

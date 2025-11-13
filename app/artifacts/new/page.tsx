@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/supabase/server"
+import { getOrCreateUncategorizedCollection } from "@/lib/actions/collections"
 
 export default async function NewArtifactPage({
   searchParams,
@@ -17,7 +18,15 @@ export default async function NewArtifactPage({
   }
 
   const { collectionId } = await searchParams
-  const effectiveCollectionId = collectionId || "uncategorized"
+
+  let effectiveCollectionId = collectionId
+
+  if (!effectiveCollectionId) {
+    const result = await getOrCreateUncategorizedCollection(user.id)
+    if (result.success && result.data) {
+      effectiveCollectionId = result.data.id
+    }
+  }
 
   return (
     <AppLayout user={user}>

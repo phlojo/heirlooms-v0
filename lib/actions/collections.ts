@@ -268,9 +268,49 @@ export async function updateCollection(collectionId: string, input: CollectionIn
 }
 
 /**
+ * Server action to get or create the uncategorized collection for a user
+ */
+export async function getOrCreateUncategorizedCollection(userId: string) {
+  const supabase = await createClient()
+
+  // Try to find existing uncategorized collection
+  const { data: existing, error: fetchError } = await supabase
+    .from("collections")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("slug", "uncategorized")
+    .single()
+
+  if (existing) {
+    return { success: true, data: existing }
+  }
+
+  // Create if doesn't exist
+  const { data, error } = await supabase
+    .from("collections")
+    .insert({
+      user_id: userId,
+      title: "Uncategorized Artifacts",
+      description:
+        "This collection holds your uncategorized artifacts — items you've created without assigning a collection, or ones that remained after a collection was deleted.",
+      slug: "uncategorized",
+      is_public: false,
+    })
+    .select()
+    .single()
+
+  if (error) {
+    console.error("[v0] Failed to create uncategorized collection:", error)
+    return { success: false, error: "Failed to create uncategorized collection" }
+  }
+
+  return { success: true, data }
+}
+
+/**
  * Server action to delete a collection with option to keep artifacts
  * @param collectionId - Collection ID to delete
- * @param deleteArtifacts - If true, delete artifacts; if false, move to unsorted (set collection_id to null)
+ * @param deleteArtifacts - If true, delete artifacts; if false, move to uncategorized collection
  */
 export async function deleteCollection(collectionId: string, deleteArtifacts = false) {
   const supabase = await createClient()
@@ -323,15 +363,23 @@ export async function deleteCollection(collectionId: string, deleteArtifacts = f
 
     await supabase.from("artifacts").delete().eq("collection_id", collectionId)
   } else {
-    console.log("[v0] Moving artifacts to Unsorted (setting collection_id to null)")
+    console.log("[v0] Moving artifacts to Uncategorized collection")
+
+    // Get or create uncategorized collection
+    const uncategorizedResult = await getOrCreateUncategorizedCollection(user.id)
+    if (!uncategorizedResult.success || !uncategorizedResult.data) {
+      return { success: false, error: "Failed to get uncategorized collection" }
+    }
+
     const { data: updatedArtifacts, error: updateError } = await supabase
       .from("artifacts")
-      .update({ collection_id: null })
+      .update({ collection_id: uncategorizedResult.data.id })
       .eq("collection_id", collectionId)
       .select()
 
     console.log("[v0] Update query details:", {
       collectionId,
+      uncategorizedId: uncategorizedResult.data.id,
       userId: user.id,
       updatedCount: updatedArtifacts?.length,
       error: updateError,
@@ -339,10 +387,10 @@ export async function deleteCollection(collectionId: string, deleteArtifacts = f
     })
 
     if (updateError) {
-      console.error("[v0] Error moving artifacts to Unsorted:", updateError)
+      console.error("[v0] Error moving artifacts to Uncategorized:", updateError)
       return {
         success: false,
-        error: `Failed to move artifacts to Unsorted: ${updateError.message || JSON.stringify(updateError)}`,
+        error: `Failed to move artifacts to Uncategorized: ${updateError.message || JSON.stringify(updateError)}`,
       }
     }
   }
