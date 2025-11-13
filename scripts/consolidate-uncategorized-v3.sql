@@ -42,8 +42,8 @@ END $$;
 DELETE FROM collections
 WHERE slug = 'uncategorized'
 AND id NOT IN (
-  SELECT MIN(id)
+  SELECT DISTINCT ON (user_id) id
   FROM collections
   WHERE slug = 'uncategorized'
-  GROUP BY user_id
+  ORDER BY user_id, created_at ASC
 );
