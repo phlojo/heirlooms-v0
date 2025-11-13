@@ -89,7 +89,7 @@ export function TranscriptionInput({
       const bufferLength = analyser.frequencyBinCount
       const dataArray = new Uint8Array(bufferLength)
 
-      const maxRecordingTime = fieldType === "title" ? 120000 : 300000
+      const maxRecordingTime = fieldType === "title" ? 10000 : 30000
       recordingTimeoutRef.current = setTimeout(() => {
         console.log("[v0] Max recording time reached, stopping")
         stopRecording()
