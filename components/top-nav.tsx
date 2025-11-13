@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Menu, LogOut } from "lucide-react"
 import { ThemeToggle } from "./theme-toggle"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import type { User as SupabaseUser } from "@supabase/supabase-js"
 import {
   DropdownMenu,
@@ -25,6 +25,7 @@ interface TopNavProps {
 
 export function TopNav({ onMenuClick, user }: TopNavProps) {
   const router = useRouter()
+  const pathname = usePathname()
   const [displayName, setDisplayName] = useState<string | null>(null)
 
   const supabase = createBrowserClient()
@@ -132,7 +133,7 @@ export function TopNav({ onMenuClick, user }: TopNavProps) {
             </DropdownMenu>
           ) : (
             <Button variant="default" size="sm" asChild>
-              <Link href="/login">Sign In</Link>
+              <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`}>Sign In</Link>
             </Button>
           )}
         </div>

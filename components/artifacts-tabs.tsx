@@ -7,6 +7,7 @@ import Link from "next/link"
 import { ArtifactCard } from "@/components/artifact-card"
 import { LoginModule } from "@/components/login-module"
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 interface Artifact {
   id: string
@@ -31,6 +32,7 @@ const STORAGE_KEY = "heirloom-artifacts-tab"
 
 export function ArtifactsTabs({ user, myArtifacts, allArtifacts }: ArtifactsTabsProps) {
   const [activeTab, setActiveTab] = useState<string>("all")
+  const pathname = usePathname()
 
   useEffect(() => {
     const savedTab = sessionStorage.getItem(STORAGE_KEY)
@@ -60,7 +62,7 @@ export function ArtifactsTabs({ user, myArtifacts, allArtifacts }: ArtifactsTabs
           </Button>
         ) : (
           <Button asChild variant="default" className="lg:hidden">
-            <Link href="/login">Sign In</Link>
+            <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`}>Sign In</Link>
           </Button>
         )}
       </div>
@@ -82,7 +84,7 @@ export function ArtifactsTabs({ user, myArtifacts, allArtifacts }: ArtifactsTabs
       <TabsContent value="mine" className="mt-6">
         {!user ? (
           <div className="mx-auto max-w-md">
-            <LoginModule returnTo="/artifacts" title="Access Your Artifacts" showBackButton={false} />
+            <LoginModule returnTo={pathname} title="Access Your Artifacts" showBackButton={false} />
           </div>
         ) : myArtifacts.length > 0 ? (
           <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">

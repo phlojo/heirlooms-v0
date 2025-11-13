@@ -8,6 +8,7 @@ import { CollectionCard } from "@/components/collection-card"
 import { EmptyCollections } from "@/components/empty-collections"
 import { LoginModule } from "@/components/login-module"
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 interface Collection {
   id: string
@@ -28,6 +29,7 @@ const STORAGE_KEY = "heirloom-collections-tab"
 
 export function CollectionsTabs({ user, myCollections, allCollections }: CollectionsTabsProps) {
   const [activeTab, setActiveTab] = useState<string>("all")
+  const pathname = usePathname()
 
   useEffect(() => {
     const savedTab = sessionStorage.getItem(STORAGE_KEY)
@@ -57,7 +59,7 @@ export function CollectionsTabs({ user, myCollections, allCollections }: Collect
           </Button>
         ) : (
           <Button asChild variant="default" className="lg:hidden">
-            <Link href="/login">Sign In</Link>
+            <Link href={`/login?returnTo=${encodeURIComponent(pathname)}`}>Sign In</Link>
           </Button>
         )}
       </div>
@@ -79,7 +81,7 @@ export function CollectionsTabs({ user, myCollections, allCollections }: Collect
       <TabsContent value="mine" className="mt-6">
         {!user ? (
           <div className="mx-auto max-w-md">
-            <LoginModule returnTo="/collections" title="Access Your Collections" showBackButton={false} />
+            <LoginModule returnTo={pathname} title="Access Your Collections" showBackButton={false} />
           </div>
         ) : myCollections.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
