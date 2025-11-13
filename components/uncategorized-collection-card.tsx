@@ -69,11 +69,30 @@ export function UncategorizedCollectionCard({ collection, mode }: UncategorizedC
             </div>
           )}
         </div>
+      </Link>
 
-        <CardHeader className="pb-0">
-          <h3 className="font-semibold leading-tight text-2xl pb-2 pt-2">{collection.title}</h3>
-        </CardHeader>
+      <CardHeader className="pb-0">
+        <h3 className="font-semibold leading-tight text-2xl pb-2 pt-2">{collection.title}</h3>
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          {collection.is_public === false && <Badge variant="purple">Private</Badge>}
+          {collection.isUnsorted && (
+            <button
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setTooltipOpen(!tooltipOpen)
+              }}
+              className="inline-flex"
+            >
+              <Badge variant="blue" className="cursor-pointer">
+                <Settings className="h-3 w-3" />
+              </Badge>
+            </button>
+          )}
+        </div>
+      </CardHeader>
 
+      <Link href={href}>
         <CardContent className="pt-0 pb-4 space-y-4 -mt-2">
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
@@ -83,24 +102,6 @@ export function UncategorizedCollectionCard({ collection, mode }: UncategorizedC
           </div>
         </CardContent>
       </Link>
-
-      <div className="absolute top-[calc(50%-1.5rem)] left-4 flex items-center gap-2 flex-wrap z-20">
-        {collection.is_public === false && <Badge variant="purple">Private</Badge>}
-        {collection.isUnsorted && (
-          <button
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setTooltipOpen(!tooltipOpen)
-            }}
-            className="inline-flex"
-          >
-            <Badge variant="blue" className="cursor-pointer">
-              <Settings className="h-3 w-3" />
-            </Badge>
-          </button>
-        )}
-      </div>
     </Card>
   )
 }
