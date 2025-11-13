@@ -10,11 +10,12 @@ import type { z } from "zod"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import Link from "next/link"
 import { useState } from "react"
-import { X, Upload, ImageIcon } from "lucide-react"
+import { X, Upload, ImageIcon, ChevronDown } from "lucide-react"
 import { AudioRecorder } from "@/components/audio-recorder"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { TranscriptionInput } from "@/components/transcription-input"
 
 type FormData = z.infer<typeof createArtifactSchema>
 
@@ -30,6 +31,7 @@ export function NewArtifactForm({
   const [isUploading, setIsUploading] = useState(false)
   const [audioUrl, setAudioUrl] = useState<string | null>(null)
   const [isUploadingAudio, setIsUploadingAudio] = useState(false)
+  const [isOptionalDetailsOpen, setIsOptionalDetailsOpen] = useState(false)
 
   const form = useForm<FormData>({
     resolver: zodResolver(createArtifactSchema),
@@ -74,16 +76,12 @@ export function NewArtifactForm({
 
       // Upload files one at a time to avoid overwhelming the server
       for (const file of Array.from(files)) {
-        console.log("[v0] Uploading file:", file.name, "Size:", file.size)
-
-        // Get signature from server
         const signatureResult = await generateCloudinarySignature(userId, file.name)
 
         if (signatureResult.error || !signatureResult.signature) {
           throw new Error(signatureResult.error || "Failed to generate upload signature")
         }
 
-        // Upload directly to Cloudinary from client
         const formData = new FormData()
         formData.append("file", file)
         formData.append("api_key", signatureResult.apiKey!)
@@ -98,9 +96,6 @@ export function NewArtifactForm({
 
         const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/image/upload`
 
-        console.log("[v0] Uploading to Cloudinary:", uploadUrl)
-        console.log("[v0] Public ID:", signatureResult.publicId)
-
         const response = await fetch(uploadUrl, {
           method: "POST",
           body: formData,
@@ -108,11 +103,6 @@ export function NewArtifactForm({
 
         if (!response.ok) {
           const errorText = await response.text()
-          console.error("[v0] Cloudinary upload failed:", {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorText,
-          })
 
           let errorData
           try {
@@ -125,24 +115,19 @@ export function NewArtifactForm({
         }
 
         const data = await response.json()
-        console.log("[v0] Successfully uploaded to Cloudinary:", data.secure_url)
         urls.push(data.secure_url)
       }
 
       setUploadedImages((prevImages) => {
         const newImages = [...prevImages, ...urls]
         const uniqueImages = Array.from(new Set(newImages))
-        console.log("[v0] Total images before dedup:", newImages.length, "After dedup:", uniqueImages.length)
-        console.log("[v0] Previous images:", prevImages.length, "New URLs:", urls.length, "Final:", uniqueImages.length)
 
         const allMediaUrls = audioUrl ? [...uniqueImages, audioUrl] : uniqueImages
         form.setValue("media_urls", allMediaUrls)
-        console.log("[v0] Updated media_urls after image upload:", allMediaUrls)
 
         return uniqueImages
       })
     } catch (err) {
-      console.error("[v0] Upload error:", err)
       setError(
         err instanceof Error
           ? err.message
@@ -160,7 +145,6 @@ export function NewArtifactForm({
     setUploadedImages(newImages)
     const allMediaUrls = audioUrl ? [...newImages, audioUrl] : newImages
     form.setValue("media_urls", allMediaUrls)
-    console.log("[v0] Updated media_urls after image removal:", allMediaUrls)
   }
 
   async function handleAudioRecorded(audioBlob: Blob, fileName: string) {
@@ -168,8 +152,6 @@ export function NewArtifactForm({
     setError(null)
 
     try {
-      console.log("[v0] Uploading audio:", fileName, "Size:", audioBlob.size)
-
       const signatureResult = await generateCloudinaryAudioSignature(userId, fileName)
 
       if (signatureResult.error || !signatureResult.signature) {
@@ -185,12 +167,6 @@ export function NewArtifactForm({
 
       const uploadUrl = `https://api.cloudinary.com/v1_1/${signatureResult.cloudName}/video/upload`
 
-      console.log("[v0] Uploading audio to Cloudinary:", uploadUrl)
-      console.log("[v0] Upload params:", {
-        publicId: signatureResult.publicId,
-        timestamp: signatureResult.timestamp,
-      })
-
       const response = await fetch(uploadUrl, {
         method: "POST",
         body: formData,
@@ -198,11 +174,6 @@ export function NewArtifactForm({
 
       if (!response.ok) {
         const errorText = await response.text()
-        console.error("[v0] Cloudinary audio upload failed:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        })
 
         let errorData
         try {
@@ -215,14 +186,11 @@ export function NewArtifactForm({
       }
 
       const data = await response.json()
-      console.log("[v0] Successfully uploaded audio to Cloudinary:", data.secure_url)
 
       setAudioUrl(data.secure_url)
       const newMediaUrls = [...uploadedImages, data.secure_url]
       form.setValue("media_urls", newMediaUrls)
-      console.log("[v0] Updated media_urls after audio upload:", newMediaUrls)
     } catch (err) {
-      console.error("[v0] Audio upload error:", err)
       setError(err instanceof Error ? err.message : "Failed to upload audio. Please try again.")
     } finally {
       setIsUploadingAudio(false)
@@ -232,49 +200,49 @@ export function NewArtifactForm({
   function removeAudio() {
     setAudioUrl(null)
     form.setValue("media_urls", uploadedImages)
-    console.log("[v0] Updated media_urls after audio removal:", uploadedImages)
   }
 
   async function onSubmit(data: FormData) {
     const uniqueMediaUrls = Array.from(new Set(data.media_urls || []))
 
     if (uniqueMediaUrls.length !== (data.media_urls?.length || 0)) {
-      console.log(
-        "[v0] WARNING: Duplicate URLs detected at submission time!",
-        "Original:",
-        data.media_urls?.length,
-        "Unique:",
-        uniqueMediaUrls.length,
-        "URLs:",
-        data.media_urls,
-      )
-      // Update the form data with deduplicated array
       data.media_urls = uniqueMediaUrls
     }
 
-    console.log("[v0] Submitting artifact with data:", data)
-    console.log("[v0] Form media_urls:", data.media_urls)
-    console.log("[v0] State - uploadedImages:", uploadedImages)
-    console.log("[v0] State - audioUrl:", audioUrl)
-    setError(null)
-    const result = await createArtifact(data)
+    const submitData = {
+      ...data,
+    }
 
-    if (result?.error) {
-      console.log("[v0] Artifact creation error:", result)
-      if (result.fieldErrors) {
-        // Set field-specific errors
-        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
-          if (messages && messages.length > 0) {
-            form.setError(field as keyof FormData, {
-              type: "server",
-              message: messages[0],
-            })
-          }
-        })
-      } else {
-        // Set general error if no field-specific errors
-        setError(result.error)
+    setError(null)
+
+    try {
+      const result = await createArtifact(submitData)
+
+      if (result?.error) {
+        if (result.fieldErrors) {
+          // Set form field errors
+          Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+            if (messages && Array.isArray(messages) && messages.length > 0) {
+              form.setError(field as keyof FormData, {
+                type: "server",
+                message: messages[0],
+              })
+            }
+          })
+          // Also show a summary in the error message
+          const errorSummary = Object.entries(result.fieldErrors)
+            .map(([field, messages]) => `${field}: ${Array.isArray(messages) ? messages.join(", ") : messages}`)
+            .join("; ")
+          setError(`Validation errors: ${errorSummary}`)
+        } else {
+          setError(result.error)
+        }
       }
+    } catch (error) {
+      if (error instanceof Error && error.message === "NEXT_REDIRECT") {
+        return
+      }
+      setError(error instanceof Error ? error.message : "An unexpected error occurred")
     }
   }
 
@@ -288,7 +256,15 @@ export function NewArtifactForm({
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="Enter artifact title" {...field} />
+                <TranscriptionInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Enter artifact title"
+                  type="input"
+                  fieldType="title"
+                  userId={userId}
+                  disabled={isUploading || isUploadingAudio}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -302,26 +278,15 @@ export function NewArtifactForm({
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea placeholder="Tell the story of this heirloom" rows={4} {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
-          name="year_acquired"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Year Acquired (Optional)</FormLabel>
-              <FormControl>
-                <Input
-                  type="number"
-                  placeholder="e.g., 1950"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
-                  value={field.value ?? ""}
+                <TranscriptionInput
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Tell the story of this artifact"
+                  type="textarea"
+                  fieldType="description"
+                  userId={userId}
+                  rows={4}
+                  disabled={isUploading || isUploadingAudio}
                 />
               </FormControl>
               <FormMessage />
@@ -329,35 +294,59 @@ export function NewArtifactForm({
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="origin"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Origin (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="e.g., Paris, France" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <Collapsible open={isOptionalDetailsOpen} onOpenChange={setIsOptionalDetailsOpen}>
+          <CollapsibleTrigger asChild>
+            <button type="button" className="flex w-full items-center justify-between text-left group py-1">
+              <span className="text-sm font-medium text-foreground">Optional Details</span>
+              <ChevronDown
+                className={`h-4 w-4 text-muted-foreground transition-all group-hover:text-foreground ${
+                  isOptionalDetailsOpen ? "rotate-180" : ""
+                }`}
+              />
+            </button>
+          </CollapsibleTrigger>
+          <CollapsibleContent className="space-y-6 pt-6">
+            <FormField
+              control={form.control}
+              name="year_acquired"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Year Acquired</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      placeholder="e.g., 1950"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                      value={field.value ?? ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-        {!collectionId && (
-          <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3">
-            <p className="text-sm text-destructive">
-              Artifacts must be associated with a collection. Please navigate to a collection and use the "Add Artifact"
-              button.
-            </p>
-          </div>
-        )}
+            <FormField
+              control={form.control}
+              name="origin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Origin</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., Paris, France" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </CollapsibleContent>
+        </Collapsible>
 
         <input type="hidden" {...form.register("collectionId")} value={collectionId || ""} />
 
         <div className="space-y-3">
           <FormLabel>Photos</FormLabel>
 
-          {/* Upload button */}
           <div className="flex items-center gap-3">
             <Button type="button" variant="outline" disabled={isUploading} asChild>
               <label className="cursor-pointer">
@@ -376,7 +365,6 @@ export function NewArtifactForm({
             <FormDescription className="!mt-0">Upload photos (max 15MB per file, 30MB total)</FormDescription>
           </div>
 
-          {/* Image previews */}
           {uploadedImages.length > 0 && (
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
               {uploadedImages.map((url, index) => (
@@ -398,7 +386,6 @@ export function NewArtifactForm({
             </div>
           )}
 
-          {/* Empty state */}
           {uploadedImages.length === 0 && !isUploading && (
             <div className="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center">
               <ImageIcon className="mb-2 h-8 w-8 text-muted-foreground" />
@@ -407,7 +394,6 @@ export function NewArtifactForm({
           )}
         </div>
 
-        {/* Audio recording section */}
         <div className="space-y-3">
           <FormLabel>Audio Recording (Optional)</FormLabel>
           <FormDescription>Record audio to accompany this artifact</FormDescription>
@@ -442,10 +428,7 @@ export function NewArtifactForm({
         )}
 
         <div className="flex gap-3">
-          <Button
-            type="submit"
-            disabled={form.formState.isSubmitting || !collectionId || isUploading || isUploadingAudio}
-          >
+          <Button type="submit" disabled={form.formState.isSubmitting || isUploading || isUploadingAudio}>
             {form.formState.isSubmitting ? "Creating..." : "Create Artifact"}
           </Button>
           <Button type="button" variant="outline" asChild>

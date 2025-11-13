@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { redirect } from "next/navigation"
 import { getCurrentUser } from "@/lib/supabase/server"
+import { getOrCreateUncategorizedCollection } from "@/lib/actions/collections"
 
 export default async function NewArtifactPage({
   searchParams,
@@ -18,6 +19,15 @@ export default async function NewArtifactPage({
 
   const { collectionId } = await searchParams
 
+  let effectiveCollectionId = collectionId
+
+  if (!effectiveCollectionId) {
+    const result = await getOrCreateUncategorizedCollection(user.id)
+    if (result.success && result.data) {
+      effectiveCollectionId = result.data.id
+    }
+  }
+
   return (
     <AppLayout user={user}>
       <div className="mx-auto max-w-2xl space-y-8">
@@ -30,10 +40,9 @@ export default async function NewArtifactPage({
           </Button>
 
           <h1 className="text-3xl font-bold tracking-tight">New Artifact</h1>
-          <p className="mt-1 text-muted-foreground">Add a new heirloom to your collection</p>
         </div>
 
-        <NewArtifactForm collectionId={collectionId} userId={user.id} />
+        <NewArtifactForm collectionId={effectiveCollectionId} userId={user.id} />
       </div>
     </AppLayout>
   )

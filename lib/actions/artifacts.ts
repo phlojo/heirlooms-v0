@@ -38,35 +38,21 @@ export async function createArtifact(input: CreateArtifactInput) {
 
   const uniqueMediaUrls = Array.from(new Set(validatedFields.data.media_urls || []))
 
-  if (uniqueMediaUrls.length !== (validatedFields.data.media_urls?.length || 0)) {
-    console.log(
-      "[v0] Duplicate media URLs detected before database insert:",
-      "Original count:",
-      validatedFields.data.media_urls?.length,
-      "Unique count:",
-      uniqueMediaUrls.length,
-      "URLs:",
-      validatedFields.data.media_urls,
-    )
+  const insertData = {
+    title: validatedFields.data.title,
+    description: validatedFields.data.description,
+    collection_id: validatedFields.data.collectionId,
+    year_acquired: validatedFields.data.year_acquired,
+    origin: validatedFields.data.origin,
+    media_urls: uniqueMediaUrls,
+    user_id: user.id,
   }
 
   // Insert artifact into database
-  const { data, error } = await supabase
-    .from("artifacts")
-    .insert({
-      title: validatedFields.data.title,
-      description: validatedFields.data.description,
-      collection_id: validatedFields.data.collectionId,
-      year_acquired: validatedFields.data.year_acquired,
-      origin: validatedFields.data.origin,
-      media_urls: uniqueMediaUrls, // Use deduplicated array
-      user_id: user.id,
-    })
-    .select()
-    .single()
+  const { data, error } = await supabase.from("artifacts").insert(insertData).select().single()
 
   if (error) {
-    console.error("[v0] Artifact creation error:", error)
+    console.error("Artifact creation error:", error)
     return { error: "Failed to create artifact. Please try again." }
   }
 
@@ -75,6 +61,7 @@ export async function createArtifact(input: CreateArtifactInput) {
   if (validatedFields.data.collectionId) {
     revalidatePath(`/collections/${validatedFields.data.collectionId}`)
   }
+
   redirect(`/artifacts/${data.id}`)
 }
 
@@ -213,8 +200,6 @@ export async function getAllPublicArtifacts(excludeUserId?: string) {
 export async function getMyArtifacts(userId: string) {
   const supabase = await createClient()
 
-  console.log("[v0] getMyArtifacts - Fetching artifacts for user:", userId)
-
   const { data, error } = await supabase
     .from("artifacts")
     .select(`
@@ -224,14 +209,8 @@ export async function getMyArtifacts(userId: string) {
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
 
-  console.log("[v0] getMyArtifacts - Found artifacts:", data?.length, "Error:", error)
-  console.log(
-    "[v0] getMyArtifacts - Artifacts with null collection_id:",
-    data?.filter((a) => a.collection_id === null).length,
-  )
-
   if (error) {
-    console.error("[v0] Error fetching my artifacts:", error)
+    console.error("Error fetching my artifacts:", error)
     return []
   }
 
@@ -292,35 +271,25 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
   // Deduplicate media_urls before updating in database
   const uniqueMediaUrls = Array.from(new Set(newMediaUrls))
 
-  if (uniqueMediaUrls.length !== newMediaUrls.length) {
-    console.log(
-      "[v0] Duplicate media URLs detected before database update:",
-      "Original count:",
-      newMediaUrls.length,
-      "Unique count:",
-      uniqueMediaUrls.length,
-      "URLs:",
-      newMediaUrls,
-    )
+  const updateData = {
+    title: validatedFields.data.title,
+    description: validatedFields.data.description,
+    year_acquired: validatedFields.data.year_acquired,
+    origin: validatedFields.data.origin,
+    media_urls: uniqueMediaUrls,
+    updated_at: new Date().toISOString(),
   }
 
   // Update artifact in database
   const { data, error } = await supabase
     .from("artifacts")
-    .update({
-      title: validatedFields.data.title,
-      description: validatedFields.data.description,
-      year_acquired: validatedFields.data.year_acquired,
-      origin: validatedFields.data.origin,
-      media_urls: uniqueMediaUrls, // Use deduplicated array
-      updated_at: new Date().toISOString(),
-    })
+    .update(updateData)
     .eq("id", validatedFields.data.id)
     .select()
     .single()
 
   if (error) {
-    console.error("[v0] Artifact update error:", error)
+    console.error("Artifact update error:", error)
     return { success: false, error: "Failed to update artifact. Please try again." }
   }
 

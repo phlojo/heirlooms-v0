@@ -38,7 +38,7 @@ export default async function CollectionDetailPage({
     isUnsorted = true
     collection = {
       id: "unsorted",
-      title: "Unsorted",
+      title: "Uncategorized Artifacts",
       description: "Artifacts that haven't been added to a collection yet",
       slug: "unsorted",
       user_id: user.id,
@@ -99,6 +99,7 @@ export default async function CollectionDetailPage({
           authorUserId={isOwnCollection ? undefined : collection.user_id}
           showBackButton={true}
           isPrivate={!collection.is_public} // Pass isPrivate prop
+          isUnsorted={isUnsorted}
         />
 
         <div className="space-y-4">
@@ -119,18 +120,13 @@ export default async function CollectionDetailPage({
             </div>
           )}
 
-          {isUnsorted && (
-            <div className="inline-flex items-center gap-2 rounded-md border border-muted bg-muted/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-              <span>System Collection</span>
-            </div>
-          )}
-          {collection.description && <p className="text-muted-foreground">{collection.description}</p>}
+          {!isUnsorted && collection.description && <p className="text-muted-foreground">{collection.description}</p>}
 
           {isUnsorted && (
             <div className="rounded-lg border border-dashed bg-muted/20 p-4">
-              <p className="text-sm text-muted-foreground mb-3">
-                These artifacts don't have a home yet. They were left behind from deleted collections or created without
-                one. You can assign and organize them anytime
+              <p className="text-sm text-muted-foreground">
+                This collection holds your uncategorized artifacts — items you&apos;ve created without assigning a
+                collection, or ones that remained after a collection was deleted.
               </p>
             </div>
           )}
@@ -139,7 +135,7 @@ export default async function CollectionDetailPage({
         {artifacts.length === 0 ? (
           <div className="rounded-lg border border-dashed p-12 text-center">
             <p className="text-sm text-muted-foreground">
-              {isUnsorted ? "No unsorted artifacts." : "No artifacts in this collection yet."}
+              {isUnsorted ? "No uncategorized artifacts." : "No artifacts in this collection yet."}
             </p>
             {canEdit && !isUnsorted && (
               <p className="mt-2 text-xs text-muted-foreground">Click "Add Artifact" above to add your first item.</p>

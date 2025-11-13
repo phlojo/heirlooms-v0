@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Heart } from "lucide-react"
+import { ArrowLeft, Heart, Settings } from "lucide-react"
 import { Author } from "@/components/author"
 import { Badge } from "@/components/ui/badge"
 import { useRouter } from "next/navigation"
@@ -27,6 +27,7 @@ interface CollectionsStickyNavProps {
   authorName?: string
   showBackButton?: boolean
   isPrivate?: boolean
+  isUnsorted?: boolean
 }
 
 export function CollectionsStickyNav({
@@ -43,9 +44,11 @@ export function CollectionsStickyNav({
   authorName,
   showBackButton = true,
   isPrivate = false,
+  isUnsorted = false,
 }: CollectionsStickyNavProps) {
   const router = useRouter()
   const [isFavorited, setIsFavorited] = useState(false)
+  const [tooltipOpen, setTooltipOpen] = useState(false)
 
   const getNavUrl = (id: string) => {
     const baseUrl = `/${itemType}s/${id}`
@@ -92,15 +95,17 @@ export function CollectionsStickyNav({
             <h1 className="font-bold tracking-tight w-full leading-tight break-words line-clamp-2 text-2xl text-left pl-[0] pr-0">
               {title}
             </h1>
-            {isPrivate ? (
-              <div className="text-left">
-                <Badge variant="purple">Private</Badge>
-              </div>
-            ) : authorUserId ? (
-              <div className="text-left mx-[0]">
+            <div className="text-left flex items-center gap-2">
+              {isPrivate && <Badge variant="purple">Private</Badge>}
+              {isUnsorted && (
+                <Badge variant="blue">
+                  <Settings className="h-3 w-3" />
+                </Badge>
+              )}
+              {!isPrivate && !isUnsorted && authorUserId && (
                 <Author userId={authorUserId} authorName={authorName} size="sm" />
-              </div>
-            ) : null}
+              )}
+            </div>
           </div>
 
           <Button variant="ghost" size="sm" onClick={toggleFavorite} className="shrink-0 h-9 w-9 p-0">
