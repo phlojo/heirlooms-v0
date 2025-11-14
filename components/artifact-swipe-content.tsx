@@ -52,10 +52,12 @@ export function ArtifactSwipeContent({
   
   console.log("[v0] After deduplication:", mediaUrls)
   console.log("[v0] Duplicate count:", (artifact.media_urls?.length || 0) - mediaUrls.length)
-
   console.log("[v0] About to render", mediaUrls.length, "media items")
+  
+  // Log each media URL before rendering
   mediaUrls.forEach((url, index) => {
     console.log(`[v0] Media item ${index}:`, url)
+    console.log(`[v0] After getDetailUrl for item ${index}:`, getDetailUrl(url))
   })
 
   const totalMedia = mediaUrls.length
@@ -130,8 +132,6 @@ export function ArtifactSwipeContent({
                   </div>
                 ) : (
                   <div key={url} className="space-y-2">
-                    {console.log(`[v0] Rendering image ${index} with URL:`, url)}
-                    {console.log(`[v0] After getDetailUrl:`, getDetailUrl(url))}
                     <ArtifactImageWithViewer
                       src={getDetailUrl(url) || "/placeholder.svg"}
                       alt={`${artifact.title} - Image ${index + 1}`}
