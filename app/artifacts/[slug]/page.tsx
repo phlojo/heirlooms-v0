@@ -1,14 +1,14 @@
 import { AppLayout } from "@/components/app-layout"
-import { notFound } from "next/navigation"
+import { notFound } from 'next/navigation'
 import { getCurrentUser } from "@/lib/supabase/server"
-import { getArtifactById, getAdjacentArtifacts } from "@/lib/actions/artifacts"
+import { getArtifactBySlug, getAdjacentArtifacts } from "@/lib/actions/artifacts"
 import { ArtifactSwipeContent } from "@/components/artifact-swipe-content"
 
-export default async function ArtifactDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ArtifactDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const user = await getCurrentUser()
 
-  const { id } = await params
-  const artifact = await getArtifactById(id)
+  const { slug } = await params
+  const artifact = await getArtifactBySlug(slug)
 
   if (!artifact) {
     notFound()
@@ -21,7 +21,7 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
     notFound()
   }
 
-  const { previous, next, currentPosition, totalCount } = await getAdjacentArtifacts(id, artifact.collection_id)
+  const { previous, next, currentPosition, totalCount } = await getAdjacentArtifacts(artifact.id, artifact.collection_id)
 
   const collectionHref = artifact.collection?.slug
     ? `/collections/${artifact.collection.slug}`
@@ -37,8 +37,8 @@ export default async function ArtifactDetailPage({ params }: { params: Promise<{
         totalCount={totalCount}
         collectionHref={collectionHref}
         canEdit={canEdit}
-        previousUrl={previous ? `/artifacts/${previous.id}` : null}
-        nextUrl={next ? `/artifacts/${next.id}` : null}
+        previousUrl={previous?.slug ? `/artifacts/${previous.slug}` : null}
+        nextUrl={next?.slug ? `/artifacts/${next.slug}` : null}
       />
     </AppLayout>
   )
