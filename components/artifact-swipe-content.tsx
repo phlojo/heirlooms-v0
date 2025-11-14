@@ -179,44 +179,6 @@ export function ArtifactSwipeContent({
         totalCount={totalCount}
       />
 
-      {!isEditMode && canEdit && (
-        <div className="py-4 px-6 lg:px-8">
-          <Button 
-            asChild
-            className="bg-purple-600 hover:bg-purple-700 text-white"
-          >
-            <Link href={`/artifacts/${artifact.slug}/edit`}>
-              <Pencil className="mr-2 h-4 w-4" />
-              Edit Artifact
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      {isEditMode ? (
-        <div className="py-4 px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <Button 
-              onClick={handleSave} 
-              disabled={isSaving}
-              className="bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Save className="mr-2 h-4 w-4" />
-              {isSaving ? "Saving..." : "Save Changes"}
-            </Button>
-            <Button 
-              asChild
-              variant="outline"
-            >
-              <Link href={`/artifacts/${artifact.slug}`}>
-                <X className="mr-2 h-4 w-4" />
-                Cancel
-              </Link>
-            </Button>
-          </div>
-        </div>
-      ) : null}
-
       <div className="space-y-6 px-6 lg:px-8">
         {isEditMode && (
           <section className="space-y-2">
@@ -555,6 +517,33 @@ export function ArtifactSwipeContent({
           userId={artifact.user_id}
           onMediaAdded={handleMediaAdded}
         />
+      )}
+
+      {/* Bottom sticky Save/Cancel widget for edit mode */}
+      {isEditMode && canEdit && (
+        <div className="fixed bottom-[calc(60px+env(safe-area-inset-bottom))] left-0 right-0 flex justify-center pointer-events-none z-40">
+          <div className="pointer-events-auto bg-card/95 backdrop-blur-sm border rounded-2xl shadow-lg px-6 py-3 mx-4">
+            <div className="flex items-center gap-3">
+              <Button 
+                onClick={handleSave} 
+                disabled={isSaving}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Save className="mr-2 h-4 w-4" />
+                {isSaving ? "Saving..." : "Save Changes"}
+              </Button>
+              <Button 
+                asChild
+                variant="outline"
+              >
+                <Link href={`/artifacts/${artifact.slug}`}>
+                  <X className="mr-2 h-4 w-4" />
+                  Cancel
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </ArtifactSwipeWrapper>
   )
