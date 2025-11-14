@@ -54,9 +54,6 @@ export default async function CollectionDetailPage({
   let artifacts = []
   try {
     if (isUncategorized && user) {
-      console.log("[v0] Fetching uncategorized artifacts for user:", user.id)
-      console.log("[v0] Collection ID:", collection.id)
-      
       const { data, error } = await supabase
         .from("artifacts")
         .select(`
@@ -66,13 +63,7 @@ export default async function CollectionDetailPage({
         .eq("collection_id", collection.id)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
-
-      console.log("[v0] Query error:", error)
-      console.log("[v0] Query data count:", data?.length || 0)
       
-      if (error) {
-        console.error("[v0] Supabase error details:", JSON.stringify(error, null, 2))
-      }
       artifacts = data || []
     } else {
       artifacts = await getArtifactsByCollection(collection.id)
@@ -80,10 +71,6 @@ export default async function CollectionDetailPage({
   } catch (error) {
     console.error("Error loading artifacts:", error)
   }
-
-  console.log("[v0] Final artifacts count:", artifacts.length)
-  console.log("[v0] isUncategorized:", isUncategorized)
-  console.log("[v0] user exists:", !!user)
 
   return (
     <AppLayout user={user}>
@@ -123,19 +110,6 @@ export default async function CollectionDetailPage({
                 Add Artifact
               </Link>
             </Button>
-          </div>
-        )}
-
-        {isUncategorized && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mx-6 lg:mx-8 text-xs space-y-1">
-            <p className="font-semibold text-yellow-900">Debug Info:</p>
-            <p>Collection ID: {collection.id}</p>
-            <p>Collection Slug: {collection.slug}</p>
-            <p>Is Uncategorized: {isUncategorized.toString()}</p>
-            <p>Artifacts Found: {artifacts.length}</p>
-            <p>User ID: {user?.id || 'none'}</p>
-            <p>Mode: {mode}</p>
-            <p>Is Own Collection: {isOwnCollection.toString()}</p>
           </div>
         )}
 
