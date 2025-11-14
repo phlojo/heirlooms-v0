@@ -1,10 +1,9 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, Heart, Settings } from "lucide-react"
-import { Author } from "@/components/author"
+import { ArrowLeft, Heart, Settings } from 'lucide-react'
 import { Badge } from "@/components/ui/badge"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/navigation'
 import { useState } from "react"
 
 interface CollectionsStickyNavProps {
@@ -83,14 +82,13 @@ export function CollectionsStickyNav({
           {showBackButton && (
             <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2 shrink-0 h-9">
               <ArrowLeft className="h-4 w-4" />
-              <span className="text-sm font-medium">Back</span>
+              <span className="font-medium text-xs">Back</span>
             </Button>
           )}
 
           {/* Divider */}
           {showBackButton && <div className="w-px bg-border shrink-0 h-12 mr-2.5" />}
 
-          {/* Center-Left: Title and Author/Private pill stacked, left-justified */}
           <div className="flex flex-col justify-center gap-0.5 flex-1 min-w-0 py-0.5">
             <h1 className="font-bold tracking-tight w-full leading-tight break-words line-clamp-2 text-2xl text-left pl-[0] pr-0">
               {title}
@@ -101,9 +99,6 @@ export function CollectionsStickyNav({
                 <Badge variant="blue">
                   <Settings className="h-3 w-3" />
                 </Badge>
-              )}
-              {!isPrivate && !isUnsorted && authorUserId && (
-                <Author userId={authorUserId} authorName={authorName} size="sm" />
               )}
             </div>
           </div>
