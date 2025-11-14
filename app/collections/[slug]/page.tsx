@@ -1,13 +1,14 @@
 import { AppLayout } from "@/components/app-layout"
 import { Button } from "@/components/ui/button"
-import { Plus, Edit } from "lucide-react"
+import { Plus, Edit } from 'lucide-react'
 import Link from "next/link"
-import { notFound, redirect } from "next/navigation"
+import { notFound, redirect } from 'next/navigation'
 import { getCurrentUser, createClient } from "@/lib/supabase/server"
 import { getCollectionBySlug } from "@/lib/actions/collections"
 import { getArtifactsByCollection } from "@/lib/actions/artifacts"
 import { ArtifactCard } from "@/components/artifact-card"
 import { CollectionsStickyNav } from "@/components/collections-sticky-nav"
+import { Author } from "@/components/author"
 
 export default async function CollectionDetailPage({
   params,
@@ -96,30 +97,37 @@ export default async function CollectionDetailPage({
           canEdit={canEdit}
           itemType="collection"
           mode={mode === "both" ? undefined : mode}
-          authorUserId={isOwnCollection ? undefined : collection.user_id}
           showBackButton={true}
-          isPrivate={!collection.is_public} // Pass isPrivate prop
+          isPrivate={!collection.is_public}
           isUnsorted={isUnsorted}
         />
 
-        <div className="space-y-4">
-          {canEdit && !isUnsorted && (
-            <div className="flex items-center justify-between">
+        {!isOwnCollection && collection.user_id && (
+          <div className="flex items-center justify-center py-4 px-6 lg:px-8">
+            <Author userId={collection.user_id} size="sm" />
+          </div>
+        )}
+
+        {isOwnCollection && (
+          <div className="flex items-center justify-center gap-3 py-4 px-6 lg:px-8">
+            {!isUnsorted && (
               <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Link href={`/collections/${collection.id}/edit`}>
                   <Edit className="mr-2 h-4 w-4" />
                   Edit Collection
                 </Link>
               </Button>
-              <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-                <Link href={`/artifacts/new?collectionId=${collection.id}`}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Artifact
-                </Link>
-              </Button>
-            </div>
-          )}
+            )}
+            <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
+              <Link href={`/artifacts/new?collectionId=${collection.id}`}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Artifact
+              </Link>
+            </Button>
+          </div>
+        )}
 
+        <div className="space-y-4">
           {!isUnsorted && collection.description && <p className="text-muted-foreground">{collection.description}</p>}
 
           {isUnsorted && (
