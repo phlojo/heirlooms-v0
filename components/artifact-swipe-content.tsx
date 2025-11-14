@@ -179,7 +179,7 @@ export function ArtifactSwipeContent({
         totalCount={totalCount}
       />
 
-      <div className="space-y-6 px-6 lg:px-8">
+      <div className={`space-y-6 px-6 lg:px-8 ${isEditMode ? 'pt-4' : ''}`}>
         {!isEditMode && canEdit && (
           <div className="flex justify-start">
             <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
@@ -193,7 +193,7 @@ export function ArtifactSwipeContent({
 
         {isEditMode && (
           <section className="space-y-2">
-            <label htmlFor="title" className="text-sm font-semibold text-foreground">Title</label>
+            <label htmlFor="title" className="text-lg font-semibold text-foreground">Title</label>
             <Input
               id="title"
               value={editTitle}
@@ -229,7 +229,8 @@ export function ArtifactSwipeContent({
           )}
         </section>
 
-        <section>
+        {/* Attributes Section */}
+        <section className="space-y-2">
           <Collapsible open={isAttributesOpen} onOpenChange={setIsAttributesOpen}>
             <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent transition-colors">
               <h2 className="text-lg font-semibold text-foreground">Attributes</h2>
@@ -381,6 +382,7 @@ export function ArtifactSwipeContent({
         )}
       </section>
 
+      {/* Provenance Section */}
       <div className="px-6 lg:px-8">
         <section className="pb-8">
           <Collapsible open={isProvenanceOpen} onOpenChange={setIsProvenanceOpen}>
@@ -530,10 +532,10 @@ export function ArtifactSwipeContent({
         />
       )}
 
-      {/* Bottom sticky Save/Cancel widget for edit mode */}
+      {/* Save Module */}
       {isEditMode && canEdit && (
-        <div className="fixed bottom-[calc(140px+env(safe-area-inset-bottom))] left-0 right-0 flex justify-center pointer-events-none z-40">
-          <div className="pointer-events-auto bg-card/95 backdrop-blur-sm border rounded-3xl shadow-lg px-6 py-3 mx-4">
+        <div className="fixed bottom-[calc(80px+env(safe-area-inset-bottom))] left-0 right-0 flex justify-center pointer-events-none z-40">
+          <div className="pointer-events-auto bg-card/95 backdrop-blur-sm border rounded-3xl shadow-lg px-6 py-3 mx-4 w-auto">
             <div className="flex items-center gap-3">
               <Button 
                 onClick={handleSave} 
