@@ -95,7 +95,7 @@ export default async function CollectionDetailPage({
         )}
 
         {isOwnCollection && (
-          <div className="flex items-center justify-center gap-3 py-4 px-6 lg:px-8">
+          <div className="flex items-center justify-between py-4 px-6 lg:px-8">
             {!isUncategorized && (
               <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
                 <Link href={`/collections/${collection.id}/edit`}>
@@ -104,6 +104,7 @@ export default async function CollectionDetailPage({
                 </Link>
               </Button>
             )}
+            {isUncategorized && <div />}
             <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
               <Link href={`/artifacts/new?collectionId=${collection.id}`}>
                 <Plus className="mr-2 h-4 w-4" />
