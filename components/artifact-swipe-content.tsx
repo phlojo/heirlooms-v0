@@ -232,9 +232,9 @@ export function ArtifactSwipeContent({
         {/* Attributes Section */}
         <section className="space-y-2">
           <Collapsible open={isAttributesOpen} onOpenChange={setIsAttributesOpen}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent transition-colors">
+            <CollapsibleTrigger className="flex w-full items-center justify-between hover:opacity-80 transition-opacity">
               <h2 className="text-lg font-semibold text-foreground">Attributes</h2>
-              <ChevronDown className={`h-5 w-5 transition-transform ${isAttributesOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isAttributesOpen ? 'rotate-180' : ''}`} />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="mt-2 rounded-lg border bg-card p-4">
@@ -383,12 +383,12 @@ export function ArtifactSwipeContent({
       </section>
 
       {/* Provenance Section */}
-      <div className="px-6 lg:px-8">
+      <div className="px-6 lg:px-8 pb-[240px]">
         <section className="pb-8">
           <Collapsible open={isProvenanceOpen} onOpenChange={setIsProvenanceOpen}>
-            <CollapsibleTrigger className="flex w-full items-center justify-between rounded-lg border bg-card p-4 hover:bg-accent transition-colors">
+            <CollapsibleTrigger className="flex w-full items-center justify-between hover:opacity-80 transition-opacity">
               <h2 className="text-lg font-semibold text-foreground">Provenance</h2>
-              <ChevronDown className={`h-5 w-5 transition-transform ${isProvenanceOpen ? 'rotate-180' : ''}`} />
+              <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isProvenanceOpen ? 'rotate-180' : ''}`} />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="mt-2 rounded-lg border bg-card p-4">
