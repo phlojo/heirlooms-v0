@@ -82,7 +82,17 @@ export async function getArtifactsByCollection(collectionId: string) {
   const { data, error } = await supabase
     .from("artifacts")
     .select(`
-      *,
+      id,
+      slug,
+      title,
+      description,
+      year_acquired,
+      origin,
+      media_urls,
+      user_id,
+      collection_id,
+      created_at,
+      updated_at,
       collection:collections(id, title)
     `)
     .eq("collection_id", collectionId)
@@ -92,6 +102,8 @@ export async function getArtifactsByCollection(collectionId: string) {
     console.error("[v0] Error fetching artifacts:", error)
     return []
   }
+
+  console.log("[v0] Fetched artifacts with slugs:", data?.map(a => ({ id: a.id, slug: a.slug, title: a.title })))
 
   return data
 }

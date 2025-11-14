@@ -57,13 +57,24 @@ export default async function CollectionDetailPage({
       const { data, error } = await supabase
         .from("artifacts")
         .select(`
-          *,
+          id,
+          slug,
+          title,
+          description,
+          year_acquired,
+          origin,
+          media_urls,
+          user_id,
+          collection_id,
+          created_at,
+          updated_at,
           collection:collections(id, title, slug)
         `)
         .eq("collection_id", collection.id)
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
       
+      console.log("[v0] Uncategorized artifacts with slugs:", data?.map(a => ({ id: a.id, slug: a.slug, title: a.title })))
       artifacts = data || []
     } else {
       artifacts = await getArtifactsByCollection(collection.id)
