@@ -282,6 +282,15 @@ export function ArtifactSwipeContent({
     router.push(`/artifacts/${artifact.slug}`)
   }
 
+  const handleCaptionGenerated = (url: string, newCaption: string) => {
+    if (isEditMode) {
+      setEditImageCaptions(prev => ({
+        ...prev,
+        [url]: newCaption
+      }))
+    }
+  }
+
   return (
     <ArtifactSwipeWrapper 
       previousUrl={isEditMode ? null : previousUrl} 
@@ -477,14 +486,16 @@ export function ArtifactSwipeContent({
                         </Button>
                       </div>
                     )}
-                    <video 
-                      src={url} 
-                      controls 
-                      className="w-full"
-                      style={{ maxHeight: '70vh' }}
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    <div className="w-full max-w-full overflow-hidden">
+                      <video 
+                        src={url} 
+                        controls 
+                        className="w-full max-w-full h-auto"
+                        style={{ maxHeight: '70vh' }}
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    </div>
                     <div className="px-6 lg:px-8 space-y-3">
                       {caption && (
                         <div className="rounded-lg border bg-muted/30 p-3">
@@ -532,7 +543,13 @@ export function ArtifactSwipeContent({
                           )}
                         </div>
                       )}
-                      {isEditMode && <GenerateVideoSummaryButton artifactId={artifact.id} videoUrl={url} />}
+                      {isEditMode && (
+                        <GenerateVideoSummaryButton 
+                          artifactId={artifact.id} 
+                          videoUrl={url}
+                          onCaptionGenerated={handleCaptionGenerated}
+                        />
+                      )}
                     </div>
                   </div>
                 )
@@ -606,7 +623,13 @@ export function ArtifactSwipeContent({
                           )}
                         </div>
                       )}
-                      {isEditMode && <GenerateImageCaptionButton artifactId={artifact.id} imageUrl={url} />}
+                      {isEditMode && (
+                        <GenerateImageCaptionButton 
+                          artifactId={artifact.id} 
+                          imageUrl={url}
+                          onCaptionGenerated={handleCaptionGenerated}
+                        />
+                      )}
                     </div>
                   </div>
                 )

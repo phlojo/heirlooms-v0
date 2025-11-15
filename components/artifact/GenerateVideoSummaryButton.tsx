@@ -10,9 +10,10 @@ import { fetchJson } from "@/lib/fetchJson"
 interface GenerateVideoSummaryButtonProps {
   artifactId: string
   videoUrl: string
+  onCaptionGenerated?: (url: string, caption: string) => void
 }
 
-export function GenerateVideoSummaryButton({ artifactId, videoUrl }: GenerateVideoSummaryButtonProps) {
+export function GenerateVideoSummaryButton({ artifactId, videoUrl, onCaptionGenerated }: GenerateVideoSummaryButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -20,7 +21,7 @@ export function GenerateVideoSummaryButton({ artifactId, videoUrl }: GenerateVid
   async function handleGenerate() {
     setIsGenerating(true)
     try {
-      await fetchJson("/api/analyze/video-single", {
+      const data = await fetchJson("/api/analyze/video-single", {
         body: { artifactId, videoUrl },
       })
 
@@ -29,7 +30,11 @@ export function GenerateVideoSummaryButton({ artifactId, videoUrl }: GenerateVid
         description: "AI video caption generated successfully",
       })
 
-      router.refresh()
+      if (onCaptionGenerated && data.caption) {
+        onCaptionGenerated(videoUrl, data.caption)
+      } else {
+        router.refresh()
+      }
     } catch (err) {
       console.error("[v0] Generate video caption error:", err)
       const errorMessage = err instanceof Error ? err.message : "Failed to generate video caption"

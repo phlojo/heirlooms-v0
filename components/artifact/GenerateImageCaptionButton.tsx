@@ -2,17 +2,18 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { Sparkles, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { useToast } from "@/hooks/use-toast"
 import { fetchJson } from "@/lib/fetchJson"
 
 interface GenerateImageCaptionButtonProps {
   artifactId: string
   imageUrl: string
+  onCaptionGenerated?: (url: string, caption: string) => void
 }
 
-export function GenerateImageCaptionButton({ artifactId, imageUrl }: GenerateImageCaptionButtonProps) {
+export function GenerateImageCaptionButton({ artifactId, imageUrl, onCaptionGenerated }: GenerateImageCaptionButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -20,7 +21,7 @@ export function GenerateImageCaptionButton({ artifactId, imageUrl }: GenerateIma
   async function handleGenerate() {
     setIsGenerating(true)
     try {
-      await fetchJson("/api/analyze/image-single", {
+      const data = await fetchJson("/api/analyze/image-single", {
         body: { artifactId, imageUrl },
       })
 
@@ -29,7 +30,11 @@ export function GenerateImageCaptionButton({ artifactId, imageUrl }: GenerateIma
         description: "AI caption generated successfully",
       })
 
-      router.refresh()
+      if (onCaptionGenerated && data.caption) {
+        onCaptionGenerated(imageUrl, data.caption)
+      } else {
+        router.refresh()
+      }
     } catch (err) {
       console.error("[v0] Generate caption error:", err)
       const errorMessage = err instanceof Error ? err.message : "Failed to generate caption"
