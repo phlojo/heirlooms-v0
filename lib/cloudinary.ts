@@ -30,10 +30,31 @@ export function getCloudinaryUrl(url: string, transformations: string): string {
 }
 
 /**
- * Get thumbnail version of image (400x400, cropped to fill)
+ * Detects if a URL is a video file
+ */
+function isVideoFile(url: string): boolean {
+  const lower = url.toLowerCase()
+  return (
+    url.includes("/video/upload/") &&
+    (lower.includes(".mp4") || lower.includes(".mov") || lower.includes(".avi") || lower.includes(".webm") || lower.includes(".mkv")) &&
+    !lower.includes(".mp3") &&
+    !lower.includes(".wav") &&
+    !lower.includes(".m4a")
+  )
+}
+
+/**
+ * Get thumbnail version of image or video (400x400, cropped to fill)
  * Perfect for: artifact cards, collection cards, grid views
+ * For videos, generates a poster frame from 1 second mark
  */
 export function getThumbnailUrl(url: string): string {
+  if (isVideoFile(url)) {
+    // For videos, use Cloudinary video transformation to get a poster frame
+    // pg_1 gets frame at 1 second, so_1.0 sets start offset to 1 second
+    return getCloudinaryUrl(url, "w_400,h_400,c_fill,q_auto,f_auto,so_1.0")
+  }
+  
   return getCloudinaryUrl(url, "w_400,h_400,c_fill,q_auto,f_auto")
 }
 

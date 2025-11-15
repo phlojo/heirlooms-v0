@@ -212,7 +212,7 @@ export function NewArtifactForm({
             <h2 className="text-xl font-semibold">Media Items</h2>
             <Button
               type="button"
-              variant="outline"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
               size="sm"
               onClick={() => setIsAddMediaOpen(true)}
             >
