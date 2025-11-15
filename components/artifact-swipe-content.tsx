@@ -71,6 +71,10 @@ export function ArtifactSwipeContent({
   const [comingSoonOpen, setComingSoonOpen] = useState(false)
   const [comingSoonFeature, setComingSoonFeature] = useState("")
   
+  const [editingCaption, setEditingCaption] = useState<string | null>(null)
+  const [editCaptionText, setEditCaptionText] = useState<string>("")
+  const [isSavingCaption, setIsSavingCaption] = useState(false)
+  
   const [editTitle, setEditTitle] = useState(artifact.title)
   const [editDescription, setEditDescription] = useState(artifact.description || "")
   const [isSaving, setIsSaving] = useState(false)
@@ -166,6 +170,35 @@ export function ArtifactSwipeContent({
   const handleComingSoon = (feature: string) => {
     setComingSoonFeature(feature)
     setComingSoonOpen(true)
+  }
+
+  const handleStartEditCaption = (url: string, currentCaption: string) => {
+    setEditingCaption(url)
+    setEditCaptionText(currentCaption)
+  }
+
+  const handleSaveCaption = async (url: string) => {
+    setIsSavingCaption(true)
+    try {
+      const { updateMediaCaption } = await import("@/lib/actions/artifacts")
+      const result = await updateMediaCaption(artifact.id, url, editCaptionText)
+      if (result.success) {
+        setEditingCaption(null)
+        router.refresh()
+      } else {
+        alert(result.error || "Failed to update caption")
+      }
+    } catch (error) {
+      console.error("[v0] Failed to update caption:", error)
+      alert("Failed to update caption. Please try again.")
+    } finally {
+      setIsSavingCaption(false)
+    }
+  }
+
+  const handleCancelEditCaption = () => {
+    setEditingCaption(null)
+    setEditCaptionText("")
   }
 
   return (
@@ -347,6 +380,7 @@ export function ArtifactSwipeContent({
                 )
               } else if (isVideoFile(url)) {
                 const caption = imageCaptions[url]
+                const isEditingThisCaption = editingCaption === url
                 return (
                   <div key={url} className="space-y-3">
                     {isEditMode && (
@@ -373,8 +407,48 @@ export function ArtifactSwipeContent({
                     <div className="px-6 lg:px-8 space-y-3">
                       {caption && (
                         <div className="rounded-lg border bg-muted/30 p-3">
-                          <h4 className="text-xs font-semibold mb-1 text-purple-600">AI Caption</h4>
-                          <p className="text-sm text-foreground leading-relaxed">{caption}</p>
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="text-xs font-semibold text-purple-600">AI Caption</h4>
+                            {isEditMode && !isEditingThisCaption && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleStartEditCaption(url, caption)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          {isEditingThisCaption ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={editCaptionText}
+                                onChange={(e) => setEditCaptionText(e.target.value)}
+                                className="text-sm min-h-[80px]"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveCaption(url)}
+                                  disabled={isSavingCaption}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  {isSavingCaption ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEditCaption}
+                                  disabled={isSavingCaption}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-foreground leading-relaxed">{caption}</p>
+                          )}
                         </div>
                       )}
                       {isEditMode && <GenerateVideoSummaryButton artifactId={artifact.id} videoUrl={url} />}
@@ -383,6 +457,7 @@ export function ArtifactSwipeContent({
                 )
               } else {
                 const caption = imageCaptions[url]
+                const isEditingThisCaption = editingCaption === url
                 return (
                   <div key={url} className="space-y-3">
                     {isEditMode && (
@@ -406,8 +481,48 @@ export function ArtifactSwipeContent({
                     <div className="px-6 lg:px-8 space-y-3">
                       {caption && (
                         <div className="rounded-lg border bg-muted/30 p-3">
-                          <h4 className="text-xs font-semibold mb-1 text-purple-600">AI Caption</h4>
-                          <p className="text-sm text-foreground leading-relaxed">{caption}</p>
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="text-xs font-semibold text-purple-600">AI Caption</h4>
+                            {isEditMode && !isEditingThisCaption && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleStartEditCaption(url, caption)}
+                              >
+                                <Pencil className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                          {isEditingThisCaption ? (
+                            <div className="space-y-2">
+                              <Textarea
+                                value={editCaptionText}
+                                onChange={(e) => setEditCaptionText(e.target.value)}
+                                className="text-sm min-h-[80px]"
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleSaveCaption(url)}
+                                  disabled={isSavingCaption}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  {isSavingCaption ? <Loader2 className="h-3 w-3 animate-spin" /> : "Save"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={handleCancelEditCaption}
+                                  disabled={isSavingCaption}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-foreground leading-relaxed">{caption}</p>
+                          )}
                         </div>
                       )}
                       {isEditMode && <GenerateImageCaptionButton artifactId={artifact.id} imageUrl={url} />}

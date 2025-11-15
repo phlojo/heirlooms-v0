@@ -507,3 +507,63 @@ export async function deleteArtifact(artifactId: string) {
 
   return { success: true }
 }
+
+/**
+ * Server action to update a caption for a specific media item
+ */
+export async function updateMediaCaption(artifactId: string, mediaUrl: string, caption: string) {
+  const supabase = await createClient()
+
+  // Check authentication
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Get current artifact
+  const { data: artifact, error: fetchError } = await supabase
+    .from("artifacts")
+    .select("user_id, slug, image_captions, collection:collections(slug)")
+    .eq("id", artifactId)
+    .single()
+
+  if (fetchError || !artifact) {
+    return { success: false, error: "Artifact not found" }
+  }
+
+  // Verify ownership
+  if (artifact.user_id !== user.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Update the caption for this specific media URL
+  const updatedImageCaptions = {
+    ...(artifact.image_captions || {}),
+    [mediaUrl]: caption,
+  }
+
+  // Update the artifact
+  const { error: updateError } = await supabase
+    .from("artifacts")
+    .update({
+      image_captions: updatedImageCaptions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", artifactId)
+
+  if (updateError) {
+    console.error("[v0] Error updating caption:", updateError)
+    return { success: false, error: "Failed to update caption" }
+  }
+
+  revalidatePath(`/artifacts/${artifact.slug}`)
+  revalidatePath(`/artifacts/${artifact.slug}/edit`)
+  if (artifact.collection?.slug) {
+    revalidatePath(`/collections/${artifact.collection.slug}`)
+  }
+
+  return { success: true }
+}
