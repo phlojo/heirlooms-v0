@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible"
 import { AddMediaModal } from "@/components/add-media-modal"
-import { ChevronDown, Plus, Save, X, Trash2, Loader2, Pencil } from 'lucide-react'
+import { ChevronDown, Plus, Save, X, Trash2, Loader2, Pencil, Share2, BarChart3, MessageSquare } from 'lucide-react'
 import { updateArtifact, deleteMediaFromArtifact, deleteArtifact } from "@/lib/actions/artifacts"
 import { useRouter } from 'next/navigation'
 import { GenerateImageCaptionButton } from "@/components/artifact/GenerateImageCaptionButton"
@@ -30,6 +30,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface ArtifactSwipeContentProps {
   artifact: any
@@ -61,6 +68,8 @@ export function ArtifactSwipeContent({
   const [isProvenanceOpen, setIsProvenanceOpen] = useState(false)
   const [isAddMediaOpen, setIsAddMediaOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [comingSoonOpen, setComingSoonOpen] = useState(false)
+  const [comingSoonFeature, setComingSoonFeature] = useState("")
   
   const [editTitle, setEditTitle] = useState(artifact.title)
   const [editDescription, setEditDescription] = useState(artifact.description || "")
@@ -155,6 +164,11 @@ export function ArtifactSwipeContent({
     }
   }
 
+  const handleComingSoon = (feature: string) => {
+    setComingSoonFeature(feature)
+    setComingSoonOpen(true)
+  }
+
   return (
     <ArtifactSwipeWrapper 
       previousUrl={isEditMode ? null : previousUrl} 
@@ -179,15 +193,42 @@ export function ArtifactSwipeContent({
         totalCount={totalCount}
       />
 
-      <div className={`space-y-6 px-6 lg:px-8 ${isEditMode ? 'pt-4' : ''}`}>
+      <div className={`space-y-6 px-6 lg:px-8 ${isEditMode ? 'pt-4' : 'pt-2'}`}>
         {!isEditMode && canEdit && (
-          <div className="flex justify-start">
+          <div className="flex items-center justify-between gap-3">
             <Button asChild className="bg-purple-600 hover:bg-purple-700 text-white">
               <Link href={`/artifacts/${artifact.slug}/edit`}>
                 <Pencil className="mr-2 h-4 w-4" />
                 Edit Artifact
               </Link>
             </Button>
+            
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => handleComingSoon("Share")}
+                variant="outline"
+                size="icon"
+                className="rounded-lg"
+              >
+                <Share2 className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => handleComingSoon("Analytics")}
+                variant="outline"
+                size="icon"
+                className="rounded-lg"
+              >
+                <BarChart3 className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => handleComingSoon("Comments")}
+                variant="outline"
+                size="icon"
+                className="rounded-lg"
+              >
+                <MessageSquare className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         )}
 
@@ -531,6 +572,18 @@ export function ArtifactSwipeContent({
           onMediaAdded={handleMediaAdded}
         />
       )}
+
+      {/* Coming Soon Dialog */}
+      <Dialog open={comingSoonOpen} onOpenChange={setComingSoonOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{comingSoonFeature}</DialogTitle>
+            <DialogDescription>
+              This feature is coming soon! We're working hard to bring you the ability to {comingSoonFeature.toLowerCase()} your artifacts.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
 
       {/* Save Module */}
       {isEditMode && canEdit && (
