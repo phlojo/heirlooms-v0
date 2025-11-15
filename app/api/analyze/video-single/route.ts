@@ -5,29 +5,22 @@ import { NextResponse } from "next/server"
 import { revalidatePath } from "next/cache"
 import { rateLimit } from "@/lib/utils/rate-limit"
 
-function isImageUrl(url: string): boolean {
+function isVideoUrl(url: string): boolean {
   const lower = url.toLowerCase()
   return (
-    lower.includes(".jpg") ||
-    lower.includes(".jpeg") ||
-    lower.includes(".png") ||
-    lower.includes(".gif") ||
-    lower.includes(".webp") ||
-    lower.includes(".bmp") ||
-    lower.includes("image")
+    (lower.includes("/video/upload/") && 
+    (lower.includes(".mp4") || lower.includes(".mov") || lower.includes(".avi") || lower.includes(".webm"))) ||
+    lower.includes("video")
   )
 }
 
-async function isValidImageUrl(url: string): Promise<boolean> {
-  try {
-    new URL(url)
-    const response = await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) })
-    if (!response.ok) return false
-    const contentType = response.headers.get("content-type")
-    return contentType?.startsWith("image/") ?? false
-  } catch {
-    return false
+function extractVideoFrame(videoUrl: string): string {
+  // Use Cloudinary transformations to extract a frame at 1 second and convert to jpg
+  const urlParts = videoUrl.split('/upload/')
+  if (urlParts.length === 2) {
+    return `${urlParts[0]}/upload/so_1.0,f_jpg/${urlParts[1]}`
   }
+  return videoUrl
 }
 
 export async function POST(request: Request) {
@@ -41,19 +34,14 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { artifactId, imageUrl } = await request.json()
+    const { artifactId, videoUrl } = await request.json()
 
-    if (!artifactId || !imageUrl) {
-      return NextResponse.json({ error: "artifactId and imageUrl are required" }, { status: 400 })
+    if (!artifactId || !videoUrl) {
+      return NextResponse.json({ error: "artifactId and videoUrl are required" }, { status: 400 })
     }
 
-    if (!isImageUrl(imageUrl)) {
-      return NextResponse.json({ error: "Invalid image URL" }, { status: 400 })
-    }
-
-    const isValid = await isValidImageUrl(imageUrl)
-    if (!isValid) {
-      return NextResponse.json({ error: "Image URL is not accessible" }, { status: 400 })
+    if (!isVideoUrl(videoUrl)) {
+      return NextResponse.json({ error: "Invalid video URL" }, { status: 400 })
     }
 
     const supabase = await createClient()
@@ -68,10 +56,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Artifact not found" }, { status: 404 })
     }
 
-    console.log("[v0] Starting single image caption for artifact:", artifactId)
-    console.log("[v0] Image URL:", imageUrl.substring(0, 50) + "...")
+    console.log("[v0] Starting video caption generation for artifact:", artifactId)
+    console.log("[v0] Video URL:", videoUrl.substring(0, 50) + "...")
 
-    // Generate caption for the single image
+    const frameUrl = extractVideoFrame(videoUrl)
+    console.log("[v0] Extracted frame URL:", frameUrl.substring(0, 50) + "...")
+
     const result = await generateText({
       model: openai(getVisionModel()),
       messages: [
@@ -80,11 +70,11 @@ export async function POST(request: Request) {
           content: [
             {
               type: "image",
-              image: imageUrl,
+              image: frameUrl,
             },
             {
               type: "text",
-              text: "Generate a descriptive caption for this image in 7-20 words. Be specific and factual.",
+              text: "Generate a descriptive caption for this video frame in 7-20 words. Be specific and factual about what you see.",
             },
           ],
         },
@@ -93,13 +83,12 @@ export async function POST(request: Request) {
     })
 
     const caption = result.text.trim()
-    console.log("[v0] Generated caption:", caption)
+    console.log("[v0] Generated video caption:", caption)
 
-    // Merge with existing captions
     const existingCaptions = artifact.image_captions || {}
     const updatedCaptions = {
       ...existingCaptions,
-      [imageUrl]: caption,
+      [videoUrl]: caption,
     }
 
     const { error: updateError } = await supabase
@@ -111,19 +100,19 @@ export async function POST(request: Request) {
       .eq("id", artifactId)
 
     if (updateError) {
-      throw new Error(`Failed to save caption: ${updateError.message}`)
+      throw new Error(`Failed to save video caption: ${updateError.message}`)
     }
 
-    console.log("[v0] Successfully saved image caption")
+    console.log("[v0] Successfully saved video caption")
 
     revalidatePath(`/artifacts/${artifact.slug}`)
     revalidatePath(`/artifacts/${artifact.slug}/edit`)
 
     return NextResponse.json({ ok: true, caption })
   } catch (error) {
-    console.error("[v0] Single image caption error:", error)
+    console.error("[v0] Video caption error:", error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Image caption generation failed" },
+      { error: error instanceof Error ? error.message : "Video caption generation failed" },
       { status: 500 },
     )
   }

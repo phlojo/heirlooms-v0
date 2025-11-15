@@ -46,11 +46,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Artifact not found" }, { status: 404 })
     }
 
-    await supabase
-      .from("artifacts")
-      .update({ analysis_status: "processing", analysis_error: null })
-      .eq("id", artifactId)
-
     const audioResponse = await fetch(audioUrl)
     if (!audioResponse.ok) {
       throw new Error(`Failed to download audio: ${audioResponse.statusText}`)
@@ -90,16 +85,20 @@ export async function POST(request: Request) {
         })
         transcript = cleanupResult.text
       } catch (cleanupError) {
-        console.error("Transcript cleanup failed, using raw transcript:", cleanupError)
+        console.error("[v0] Transcript cleanup failed, using raw transcript:", cleanupError)
       }
+    }
+
+    const existingTranscripts = artifact.audio_transcripts || {}
+    const updatedTranscripts = {
+      ...existingTranscripts,
+      [audioUrl]: transcript,
     }
 
     const { error: updateError } = await supabase
       .from("artifacts")
       .update({
-        transcript,
-        analysis_status: "done",
-        analysis_error: null,
+        audio_transcripts: updatedTranscripts,
         updated_at: new Date().toISOString(),
       })
       .eq("id", artifactId)
@@ -108,29 +107,12 @@ export async function POST(request: Request) {
       throw new Error(`Failed to save transcript: ${updateError.message}`)
     }
 
-    console.log("[v0] Successfully saved transcript for artifact:", artifactId)
-
     revalidatePath(`/artifacts/${artifact.slug}`)
     revalidatePath(`/artifacts/${artifact.slug}/edit`)
 
-    return NextResponse.json({ ok: true })
+    return NextResponse.json({ ok: true, transcript })
   } catch (error) {
-    console.error("Audio transcription error:", error)
-
-    if (artifactId) {
-      try {
-        const supabase = await createClient()
-        await supabase
-          .from("artifacts")
-          .update({
-            analysis_status: "error",
-            analysis_error: error instanceof Error ? error.message : "Unknown error occurred",
-          })
-          .eq("id", artifactId)
-      } catch (dbError) {
-        console.error("Failed to save error status:", dbError)
-      }
-    }
+    console.error("[v0] Audio transcription error:", error)
 
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Audio transcription failed" },

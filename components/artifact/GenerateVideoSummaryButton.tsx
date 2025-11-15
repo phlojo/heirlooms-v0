@@ -7,13 +7,13 @@ import { useRouter } from 'next/navigation'
 import { useToast } from "@/hooks/use-toast"
 import { fetchJson } from "@/lib/fetchJson"
 
-interface GenerateImageCaptionButtonProps {
+interface GenerateVideoSummaryButtonProps {
   artifactId: string
-  imageUrl: string
+  videoUrl: string
   onCaptionGenerated?: (url: string, caption: string) => void
 }
 
-export function GenerateImageCaptionButton({ artifactId, imageUrl, onCaptionGenerated }: GenerateImageCaptionButtonProps) {
+export function GenerateVideoSummaryButton({ artifactId, videoUrl, onCaptionGenerated }: GenerateVideoSummaryButtonProps) {
   const [isGenerating, setIsGenerating] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
@@ -21,23 +21,23 @@ export function GenerateImageCaptionButton({ artifactId, imageUrl, onCaptionGene
   async function handleGenerate() {
     setIsGenerating(true)
     try {
-      const data = await fetchJson("/api/analyze/image-single", {
-        body: { artifactId, imageUrl },
+      const data = await fetchJson("/api/analyze/video-single", {
+        body: { artifactId, videoUrl },
       })
 
       toast({
         title: "Success",
-        description: "AI caption generated successfully",
+        description: "AI video caption generated successfully",
       })
 
       if (onCaptionGenerated && data.caption) {
-        onCaptionGenerated(imageUrl, data.caption)
+        onCaptionGenerated(videoUrl, data.caption)
       } else {
         router.refresh()
       }
     } catch (err) {
-      console.error("[v0] Generate caption error:", err)
-      const errorMessage = err instanceof Error ? err.message : "Failed to generate caption"
+      console.error("[v0] Generate video caption error:", err)
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate video caption"
       toast({
         title: "Error",
         description: errorMessage,

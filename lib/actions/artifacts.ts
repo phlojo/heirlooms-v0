@@ -8,8 +8,9 @@ import {
   type UpdateArtifactInput,
 } from "@/lib/schemas"
 import { revalidatePath } from "next/cache"
-import { redirect } from "next/navigation"
+import { redirect } from 'next/navigation'
 import { deleteCloudinaryMedia, extractPublicIdFromUrl } from "./cloudinary"
+import { generateSlug, generateUniqueSlug } from "@/lib/utils/slug"
 
 /**
  * Server action to create a new artifact
@@ -38,6 +39,12 @@ export async function createArtifact(input: CreateArtifactInput) {
 
   const uniqueMediaUrls = Array.from(new Set(validatedFields.data.media_urls || []))
 
+  const baseSlug = generateSlug(validatedFields.data.title)
+  const slug = await generateUniqueSlug(baseSlug, async (slug) => {
+    const { data } = await supabase.from("artifacts").select("id").eq("slug", slug).maybeSingle()
+    return !!data
+  })
+
   const insertData = {
     title: validatedFields.data.title,
     description: validatedFields.data.description,
@@ -46,6 +53,7 @@ export async function createArtifact(input: CreateArtifactInput) {
     origin: validatedFields.data.origin,
     media_urls: uniqueMediaUrls,
     user_id: user.id,
+    slug,
   }
 
   // Insert artifact into database
@@ -62,7 +70,7 @@ export async function createArtifact(input: CreateArtifactInput) {
     revalidatePath(`/collections/${validatedFields.data.collectionId}`)
   }
 
-  redirect(`/artifacts/${data.id}`)
+  redirect(`/artifacts/${data.slug}`)
 }
 
 /**
@@ -74,7 +82,17 @@ export async function getArtifactsByCollection(collectionId: string) {
   const { data, error } = await supabase
     .from("artifacts")
     .select(`
-      *,
+      id,
+      slug,
+      title,
+      description,
+      year_acquired,
+      origin,
+      media_urls,
+      user_id,
+      collection_id,
+      created_at,
+      updated_at,
       collection:collections(id, title)
     `)
     .eq("collection_id", collectionId)
@@ -84,6 +102,8 @@ export async function getArtifactsByCollection(collectionId: string) {
     console.error("[v0] Error fetching artifacts:", error)
     return []
   }
+
+  console.log("[v0] Fetched artifacts with slugs:", data?.map(a => ({ id: a.id, slug: a.slug, title: a.title })))
 
   return data
 }
@@ -129,7 +149,7 @@ export async function getAdjacentArtifacts(artifactId: string, collectionId: str
   // Get all artifacts in the collection ordered by created_at
   const { data: artifacts, error } = await supabase
     .from("artifacts")
-    .select("id, title, created_at")
+    .select("id, title, slug, created_at")
     .eq("collection_id", collectionId)
     .order("created_at", { ascending: false })
 
@@ -249,7 +269,7 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
   // Verify ownership
   const { data: existingArtifact } = await supabase
     .from("artifacts")
-    .select("user_id, collection_id, collection:collections(slug)")
+    .select("user_id, collection_id, slug, title, collection:collections(slug)")
     .eq("id", validatedFields.data.id)
     .single()
 
@@ -271,13 +291,29 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
   // Deduplicate media_urls before updating in database
   const uniqueMediaUrls = Array.from(new Set(newMediaUrls))
 
-  const updateData = {
+  let newSlug = existingArtifact.slug
+  if (validatedFields.data.title !== existingArtifact.title) {
+    const baseSlug = generateSlug(validatedFields.data.title)
+    newSlug = await generateUniqueSlug(baseSlug, async (slug) => {
+      // Don't count the current artifact's slug as taken
+      if (slug === existingArtifact.slug) return false
+      const { data } = await supabase.from("artifacts").select("id").eq("slug", slug).maybeSingle()
+      return !!data
+    })
+  }
+
+  const updateData: any = {
     title: validatedFields.data.title,
     description: validatedFields.data.description,
     year_acquired: validatedFields.data.year_acquired,
     origin: validatedFields.data.origin,
     media_urls: uniqueMediaUrls,
+    slug: newSlug,
     updated_at: new Date().toISOString(),
+  }
+
+  if (validatedFields.data.image_captions !== undefined) {
+    updateData.image_captions = validatedFields.data.image_captions
   }
 
   // Update artifact in database
@@ -293,7 +329,8 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
     return { success: false, error: "Failed to update artifact. Please try again." }
   }
 
-  revalidatePath(`/artifacts/${data.id}`)
+  revalidatePath(`/artifacts/${existingArtifact.slug}`)
+  revalidatePath(`/artifacts/${data.slug}`)
   revalidatePath("/collections")
   if (existingArtifact.collection?.slug) {
     revalidatePath(`/collections/${existingArtifact.collection.slug}`)
@@ -302,4 +339,235 @@ export async function updateArtifact(input: UpdateArtifactInput, oldMediaUrls: s
   }
 
   return { success: true, data }
+}
+
+/**
+ * Server action to delete a single media item from an artifact
+ */
+export async function deleteMediaFromArtifact(artifactId: string, mediaUrl: string) {
+  const supabase = await createClient()
+
+  // Check authentication
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Get current artifact
+  const { data: artifact, error: fetchError } = await supabase
+    .from("artifacts")
+    .select("user_id, slug, media_urls, image_captions, video_summaries, audio_transcripts, audio_summaries, collection:collections(slug)")
+    .eq("id", artifactId)
+    .single()
+
+  if (fetchError || !artifact) {
+    return { success: false, error: "Artifact not found" }
+  }
+
+  // Verify ownership
+  if (artifact.user_id !== user.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Remove the URL from media_urls array
+  const updatedMediaUrls = (artifact.media_urls || []).filter((url: string) => url !== mediaUrl)
+
+  // Remove associated AI metadata
+  const updatedImageCaptions = { ...(artifact.image_captions || {}) }
+  delete updatedImageCaptions[mediaUrl]
+
+  const updatedVideoSummaries = { ...(artifact.video_summaries || {}) }
+  delete updatedVideoSummaries[mediaUrl]
+
+  const updatedAudioTranscripts = { ...(artifact.audio_transcripts || {}) }
+  delete updatedAudioTranscripts[mediaUrl]
+
+  const updatedAudioSummaries = { ...(artifact.audio_summaries || {}) }
+  delete updatedAudioSummaries[mediaUrl]
+
+  // Update the artifact
+  const { error: updateError } = await supabase
+    .from("artifacts")
+    .update({
+      media_urls: updatedMediaUrls,
+      image_captions: updatedImageCaptions,
+      video_summaries: updatedVideoSummaries,
+      audio_transcripts: updatedAudioTranscripts,
+      audio_summaries: updatedAudioSummaries,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", artifactId)
+
+  if (updateError) {
+    console.error("[v0] Error deleting media:", updateError)
+    return { success: false, error: "Failed to delete media" }
+  }
+
+  // Delete from Cloudinary
+  const publicId = await extractPublicIdFromUrl(mediaUrl)
+  if (publicId) {
+    await deleteCloudinaryMedia(publicId)
+  }
+
+  revalidatePath(`/artifacts/${artifact.slug}`)
+  revalidatePath(`/artifacts/${artifact.slug}/edit`)
+  revalidatePath("/collections")
+  if (artifact.collection?.slug) {
+    revalidatePath(`/collections/${artifact.collection.slug}`)
+  }
+
+  return { success: true }
+}
+
+/**
+ * Server action to get a single artifact by slug with collection info
+ */
+export async function getArtifactBySlug(artifactSlug: string) {
+  const supabase = await createClient()
+
+  const { data, error } = await supabase
+    .from("artifacts")
+    .select(`
+      *,
+      collection:collections(id, title, is_public, slug)
+    `)
+    .eq("slug", artifactSlug)
+    .single()
+
+  if (error) {
+    console.error("[v0] Error fetching artifact:", error)
+    return null
+  }
+
+  if (data) {
+    const { data: profile } = await supabase.from("profiles").select("display_name").eq("id", data.user_id).single()
+
+    return {
+      ...data,
+      author_name: profile?.display_name || null,
+    }
+  }
+
+  return data
+}
+
+/**
+ * Server action to delete an artifact and all its media
+ */
+export async function deleteArtifact(artifactId: string) {
+  const supabase = await createClient()
+
+  // Check authentication
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Get current artifact
+  const { data: artifact, error: fetchError } = await supabase
+    .from("artifacts")
+    .select("user_id, slug, media_urls, collection:collections(slug)")
+    .eq("id", artifactId)
+    .single()
+
+  if (fetchError || !artifact) {
+    return { success: false, error: "Artifact not found" }
+  }
+
+  // Verify ownership
+  if (artifact.user_id !== user.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Delete all media from Cloudinary
+  const mediaUrls = artifact.media_urls || []
+  for (const url of mediaUrls) {
+    const publicId = await extractPublicIdFromUrl(url)
+    if (publicId) {
+      await deleteCloudinaryMedia(publicId)
+    }
+  }
+
+  // Delete the artifact from database
+  const { error: deleteError } = await supabase.from("artifacts").delete().eq("id", artifactId)
+
+  if (deleteError) {
+    console.error("[v0] Error deleting artifact:", deleteError)
+    return { success: false, error: "Failed to delete artifact" }
+  }
+
+  // Revalidate paths
+  revalidatePath(`/artifacts/${artifact.slug}`)
+  revalidatePath("/collections")
+  if (artifact.collection?.slug) {
+    revalidatePath(`/collections/${artifact.collection.slug}`)
+  }
+
+  return { success: true }
+}
+
+/**
+ * Server action to update a caption for a specific media item
+ */
+export async function updateMediaCaption(artifactId: string, mediaUrl: string, caption: string) {
+  const supabase = await createClient()
+
+  // Check authentication
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Get current artifact
+  const { data: artifact, error: fetchError } = await supabase
+    .from("artifacts")
+    .select("user_id, slug, image_captions, collection:collections(slug)")
+    .eq("id", artifactId)
+    .single()
+
+  if (fetchError || !artifact) {
+    return { success: false, error: "Artifact not found" }
+  }
+
+  // Verify ownership
+  if (artifact.user_id !== user.id) {
+    return { success: false, error: "Unauthorized" }
+  }
+
+  // Update the caption for this specific media URL
+  const updatedImageCaptions = {
+    ...(artifact.image_captions || {}),
+    [mediaUrl]: caption,
+  }
+
+  // Update the artifact
+  const { error: updateError } = await supabase
+    .from("artifacts")
+    .update({
+      image_captions: updatedImageCaptions,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", artifactId)
+
+  if (updateError) {
+    console.error("[v0] Error updating caption:", updateError)
+    return { success: false, error: "Failed to update caption" }
+  }
+
+  revalidatePath(`/artifacts/${artifact.slug}`)
+  revalidatePath(`/artifacts/${artifact.slug}/edit`)
+  if (artifact.collection?.slug) {
+    revalidatePath(`/collections/${artifact.collection.slug}`)
+  }
+
+  return { success: true }
 }
